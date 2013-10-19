@@ -1,6 +1,6 @@
 [[ "${TERM}" != "dumb" && -f /etc/bashrc ]] && . /etc/bashrc
 source ~/.git-completion.sh
-PS1='\[\e[1;31m\][\u\[\e[0m\]@\[\e[1;32m\]\h:$(/net/bin/prompt-current-branch)\W%]\$\[\e[0m\] '
+PS1='\[\e[1;31m\][\u\[\e[0m\]@\[\e[1;32m\]\h:\W%]\$\[\e[0m\] '
 #PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
 #PS1='\u@\h:\W% '
 
