@@ -1,13 +1,22 @@
 source ~/.git-completion.sh
-source ~/.reviewboard.alias.bash
 
 PATH=~/.bin:$PATH:/net/bin
+GOPATH=/home/brian/projects/go
+GOBIN=/home/brian/projects/go/bin
 
 alias vi=vim
 alias ls='ls --color'
 alias gits='git status'
 alias gitc='git checkout'
 
+# vim mode
+set -o vi
+
+# set caps to escape key
+setxkbmap -option caps:escape
+
+feh --bg-center ~/.config/awesome/themes/default/backgrounds/tumblr_n03hc1lshJ1qgnttdo1_1280.jpg
+xbindkeys
 
 #if [[ $TERM == "xterm" ]]; then
 #    export TERM=xterm-256color
@@ -101,7 +110,6 @@ PathFull="\W"
 NewLine="\n"
 Jobs="\j"
 
-DataMode='$(git data | grep "*" | cut -d " " -f 2)'
 
 # This PS1 snippet was adopted from code for MAC/BSD I saw from: http://allancraig.net/index.php?option=com_content&view=article&id=108:ps1-export-command-for-git&catid=45:general&Itemid=96
 # I tweaked it to work on UBUNTU 11.04 & 11.10 plus made it mo' better
@@ -110,7 +118,7 @@ if [ $? -eq 0 ]; then \
     echo "$(echo "nothing to commit" | grep "nothing to commit" > /dev/null 2>&1; \
     if [ "$?" -eq "0" ]; then \
         # @4 - Clean repository - nothing to commit
-        echo "'$Green'"$(__git_ps1 " (%s)") "'$BIBlue'"'$DataMode'; \
+        echo "'$Green'"$(__git_ps1 " (%s)") "'$BIBlue'"; \
     fi) '$BYellow$PathShort$Color_Off'\$ "; \
 else \
     # @2 - Prompt when not in GIT repo
