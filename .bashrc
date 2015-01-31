@@ -1,22 +1,13 @@
 source ~/.git-completion.sh
-
 PATH=~/.bin:$PATH:/net/bin
-GOPATH=/home/brian/projects/go
-GOBIN=/home/brian/projects/go/bin
 
 alias vi=vim
-alias ls='ls --color'
 alias gits='git status'
 alias gitc='git checkout'
+alias ls='ls -G'
 
 # vim mode
 set -o vi
-
-# set caps to escape key
-setxkbmap -option caps:escape
-
-feh --bg-center ~/.config/awesome/themes/default/backgrounds/tumblr_n03hc1lshJ1qgnttdo1_1280.jpg
-xbindkeys
 
 #if [[ $TERM == "xterm" ]]; then
 #    export TERM=xterm-256color
@@ -119,10 +110,10 @@ if [ $? -eq 0 ]; then \
     if [ "$?" -eq "0" ]; then \
         # @4 - Clean repository - nothing to commit
         echo "'$Green'"$(__git_ps1 " (%s)") "'$BIBlue'"; \
-    fi) '$BYellow$PathShort$Color_Off'\$ "; \
+    fi) '$BYellow$PathShort$Color_Off'\n\$ "; \
 else \
     # @2 - Prompt when not in GIT repo
-    echo " '$Yellow$PathShort$Color_Off'\$ "; \
+    echo " '$Yellow$PathShort$Color_Off'\n\$ "; \
 fi)'
 #PS1='\[\e[1;31m\][\u\[\e[0m\]@\[\e[1;32m\]\h:\W%]\$\[\e[0m\] '
 #PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
