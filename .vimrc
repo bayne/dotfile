@@ -1,21 +1,33 @@
+filetype plugin indent on
+command! -nargs=1 Silent execute ':silent !'.<q-args> | execute ':redraw!'
+
+set hidden
+set completeopt=longest,menuone
+
+au FileType elixir set formatprg=mix\ format\ -
+
+let g:racer_experimental_completer = 1
+let g:racer_insert_paren = 1
+
+let g:rustfmt_autosave = 1
+let g:dot_http_env = 'dev-local'
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
 set number
 set background=dark
 set autoindent
 set tabstop=4
 set shiftwidth=4
 set expandtab
-set tags=~/.vim/tags/eee
 set go-=m
 set go-=T
 set go-=L
 set go-=r
-colors zenburn
-
-" Xdebugger path
-let g:pathMap = '/devdata:/Users/bpayne/eee'
-
-" Loads pathogen module
-call pathogen#infect()
+colors gruvbox
 
 set nocompatible
 
@@ -54,31 +66,11 @@ set history=100
 " show the cursor position all the time
 set ruler
 
-set t_Co=256
-
 imap <D-u> <C-u>
 imap <D-d> <C-d>
+map <C-r> :DotHttp<CR>
 
 vmap < <gv
 vmap > >gv
 
-map <C-S-o> :FufCoverageFile<Enter>
-map <C-S-p> :FufLine<Enter>
 nnoremap q <C-w>
-
-nnoremap <Leader>D :let NERDTreeQuitOnOpen = 0<bar>NERDTreeToggle<CR>
-
-autocmd BufRead *.py set makeprg=python\ -c\ \"import\ py_compile,sys;\ sys.stderr=sys.stdout;\ py_compile.compile(r'%'')\"
-autocmd BufRead *.py set efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
-autocmd BufRead *.go nmap <F5> :!go run %<CR>
-
-autocmd BufRead *.java set makeprg=javac\ *.java
-autocmd BufRead *.java set efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
-"autocmd BufRead *.java nmap <F5>./test.sh<CR>
-
-" PHPDoc
-map <C-h> :call PhpDocSingle()<CR>
-let g:pdv_cfg_Author = "Brian Payne <bpayne@uci.edu>"
-let g:pdv_cfg_php4always = 0
-
-

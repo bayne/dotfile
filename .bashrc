@@ -1,5 +1,5 @@
 source ~/.git-completion.sh
-PATH=~/.bin:$PATH:/net/bin
+PATH=~/.bin:$PATH
 
 alias vi=vim
 alias gits='git status'
@@ -8,17 +8,6 @@ alias ls='ls -G'
 
 # vim mode
 set -o vi
-
-#if [[ $TERM == "xterm" ]]; then
-#    export TERM=xterm-256color
-#fi
-
-#  Customize BASH PS1 prompt to show current GIT repository and branch.
-#  by Mike Stewart - http://MediaDoneRight.com
-
-#  SETUP CONSTANTS
-#  Bunch-o-predefined colors.  Makes reading code easier than escape sequences.
-#  I don't remember where I found this.  o_O
 
 # Reset
 Color_Off="\[\033[0m\]"       # Text Reset
@@ -115,7 +104,4 @@ else \
     # @2 - Prompt when not in GIT repo
     echo " '$Yellow$PathShort$Color_Off'\n\$ "; \
 fi)'
-#PS1='\[\e[1;31m\][\u\[\e[0m\]@\[\e[1;32m\]\h:\W%]\$\[\e[0m\] '
-#PS1='\[\e[1;32m\][\u@\h \W]\$\[\e[0m\] '
-#PS1='\u@\h:\W% '
 
