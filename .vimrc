@@ -74,3 +74,5 @@ vmap < <gv
 vmap > >gv
 
 nnoremap q <C-w>
+
+vnoremap <C-c> "+y
