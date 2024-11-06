@@ -146,6 +146,6 @@ export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/home/bpayne/.docker/desktop/docke
 . $HOME/.asdf/asdf.sh
 . $HOME/.asdf/completions/asdf.bash
 . $HOME/.kubectl_completion
-eval "$(asdf direnv hook bash)"
 export VISUAL=vim
 export EDITOR="$VISUAL"
+source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/bashrc"
