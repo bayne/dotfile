@@ -147,3 +147,4 @@ export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/home/bpayne/.docker/desktop/docke
 export VISUAL=vim
 export EDITOR="$VISUAL"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/bashrc"
+xhost +SI:localuser:briandisney
