@@ -143,9 +143,8 @@ export PATH=$PATH:/home/bpayne/Disney/Code/db-connect/bin
 export DOCKER_HOST="unix:///home/bpayne/.docker/desktop/docker.sock"
 export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/home/bpayne/.docker/desktop/docker.sock"
 
-. $HOME/.asdf/asdf.sh
-. $HOME/.asdf/completions/asdf.bash
-. $HOME/.kubectl_completion
+. /opt/asdf-vm/asdf.sh
 export VISUAL=vim
 export EDITOR="$VISUAL"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/bashrc"
+xhost +SI:localuser:briandisney
