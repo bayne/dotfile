@@ -75,4 +75,6 @@ vmap > >gv
 
 nnoremap q <C-w>
 
-vnoremap <C-c> "+y
+set clipboard^=unnamedplus,unnamedplus
+
+set expandtab

@@ -23,15 +23,98 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import asyncio
+from datetime import datetime, timedelta
 
-from libqtile import bar, layout, qtile, widget
+from libqtile import bar, layout, qtile, widget, hook, log_utils
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+import subprocess, requests, logging, pytz
+from systemd.journal import JournalHandler
+
+logger = log_utils.logger
+logger.setLevel(logging.INFO)  # Adjust level as needed
+
+# Create journal handler
+journal_handler = JournalHandler()
+journal_handler.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+# Add handler to Qtile logger
+logger.addHandler(journal_handler)
+
+def get_password(entry):
+    result = subprocess.run(["pass", entry], capture_output=True, text=True, check=True)
+    return result.stdout.strip()
+
+OUTLOOK_EVENT_URL = get_password("outlook-event-url")
+
+class OutlookChecker(widget.base.ThreadPoolText):
+    defaults = [
+        ("update_interval", 600, "Update time in seconds."),
+        ("timezone", pytz.timezone('America/Los_Angeles'), "Timezone"),
+        ("url", OUTLOOK_EVENT_URL, "URL with events"),
+        ("foreground", "33ff33", "foreground color"),
+        ("foreground_active", "ff8888", "foreground color when meeting is active"),
+    ]
+
+    def __init__(self, **config):
+        widget.base.ThreadPoolText.__init__(self, "", **config)
+        self.add_defaults(OutlookChecker.defaults)
+        self.foreground_inactive = self.foreground
+        self.force_update()
+
+
+    def _get_datetime(self, date_string: str):
+        return pytz.utc.localize(datetime.fromisoformat(date_string)).astimezone(self.timezone)
+
+
+    def poll(self):
+        now = datetime.now(self.timezone)
+
+        response = requests.get(self.url)
+        events = response.json()['value']
+        events = filter(lambda e: e['isReminderOn'], events)
+        events = filter(lambda e: self._get_datetime(e['start']) > now or now <= self._get_datetime(e['end']), events)
+        next_event = min(events, default={}, key=lambda e: e['start'])
+        if not next_event:
+            return "No next event"
+
+        subject, start, end = next_event['subject'], next_event['start'], next_event['end']
+        start = self._get_datetime(start)
+        end = self._get_datetime(end)
+        day = datetime.strftime(start, "%a")
+        start_time = datetime.strftime(start, "%-I:%M %p")
+        end_time = datetime.strftime(end, "%-I:%M %p")
+
+        if start <= now <= end:
+            self.foreground = self.foreground_active
+        else:
+            self.foreground = self.foreground_inactive
+
+        return f"[[{subject} {day} @ {start_time}-{end_time}]]"
+
+@hook.subscribe.client_managed
+async def restack_intellij(client):
+    if "jetbrains-idea" in client.get_wm_class() and client.has_focus:
+        await asyncio.sleep(0.5)
+        client.bring_to_front()
+
+
+@hook.subscribe.startup_once
+def startup():
+    subprocess.run(["/home/bpayne/.screenlayout/default.sh"])
+    subprocess.Popen(["/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1"])
+    # home dir backup
+    subprocess.Popen(["/usr/bin/vorta"])
+    subprocess.run(["/usr/bin/systemctl --user start spice-vdagent"])
+
+# windows key
 mod = "mod4"
 terminal = guess_terminal()
 
+# https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
 keys = [
     # A list of available commands that can be bound to keys can be found
     # at https://docs.qtile.org/en/latest/manual/config/lazy.html
@@ -47,14 +130,13 @@ keys = [
     Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"),
     Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
     Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    # mod1 is alt key
+    Key(["mod1", "shift"], "4", lazy.spawn('flameshot gui'), desc="screenshot"),
     # Grow windows. If current window is on the edge of screen and direction
     # will be to screen edge - window would shrink.
-    Key([mod, "control"], "h", lazy.layout.grow_left(), desc="Grow window to the left"),
-    Key([mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"),
-    # Key([mod, "control"], "j", lazy.layout.grow_down(), desc="Grow window down"),
-    # Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
-    Key([mod, "control"], "j", lazy.next_screen(), desc="next"),
+    Key([mod, "control"], "l", lazy.screen.next_group(), desc="next"),
+    Key([mod, "control"], "h", lazy.screen.prev_group(), desc="prev"),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -65,17 +147,17 @@ keys = [
         lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack",
     ),
-    Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
+    Key([mod], "t", lazy.spawn(terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
-    Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
+    Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
     Key(
         [mod],
         "f",
         lazy.window.toggle_fullscreen(),
         desc="Toggle fullscreen on the focused window",
     ),
-    Key([mod], "t", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    Key([mod], "g", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     # Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
@@ -124,20 +206,28 @@ for i in groups:
     )
 
 layouts = [
-    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2, num_columns=3),
+    # layout.ScreenSplit(splits=[
+    #     {"name": "top", "rect": (0, 0, 1, 0.5), "layout": layout.Columns()},
+    #     {"name": "bottom", "rect": (0, 0.5, 1, 0.5), "layout": layout.Columns()},
+    # ])
     # layout.Max(),
     # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
+    # layout.Stack(num_stacks=3),
     # layout.Bsp(),
-    # layout.Matrix(),
+    # layout.Matrix(columns=3),
     # layout.MonadTall(),
+
     layout.MonadThreeCol(auto_maximize=True),
+
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
     # layout.TreeTab(),
     # layout.VerticalTile(),
+    # layout.Plasma(),
     # layout.Zoomy(),
+    # layout.Slice(),
 ]
 
 widget_defaults = dict(
@@ -150,18 +240,14 @@ extension_defaults = widget_defaults.copy()
 screens = [
     Screen(
         top=bar.Bar(
+            widgets=
             [
                 # widget.CurrentLayout(),
-                widget.Clock(format="%Y-%m-%d %a %I:%M:%S %p"),
                 widget.GroupBox(),
-                widget.Prompt(),
+                # widget.Prompt(),
                 widget.WindowName(),
-                widget.Chord(
-                    chords_colors={
-                        "launch": ("#ff0000", "#ffffff"),
-                    },
-                    name_transform=lambda name: name.upper(),
-                ),
+                widget.Clock(format="%a %b %d %I:%M:%S %p"),
+                OutlookChecker(),
                 # widget.TextBox("default config", name="default"),
                 # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
@@ -169,7 +255,8 @@ screens = [
                 widget.Spacer(),
                 widget.Systray(),
             ],
-            24,
+            size=24,
+            background="#591a7d"
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),

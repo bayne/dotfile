@@ -129,19 +129,10 @@ set -o vi
 
 export ANDROID_SDK_ROOT=~/Code/Android
 PATH=$PATH:$(go env GOPATH)/bin
+export PATH=$PATH:/home/bpayne/.bin
 eval "$(jira --completion-script-bash)"
 
-gdrive_download () {
-  CONFIRM=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate "https://docs.google.com/uc?export=download&id=$1" -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')
-    wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$CONFIRM&id=$1" -O $2
-      rm -rf /tmp/cookies.txt
-}
-
-export PATH=$PATH:/home/bpayne/.local/share/JetBrains/Toolbox/scripts
-export PATH=$PATH:/home/bpayne/Disney/Code/db-connect/bin
-
-export DOCKER_HOST="unix:///home/bpayne/.docker/desktop/docker.sock"
-export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE="/home/bpayne/.docker/desktop/docker.sock"
+export DOCKER_HOST="unix:///var/run/docker.sock"
 
 . $HOME/.asdf/asdf.sh
 . $HOME/.asdf/completions/asdf.bash
