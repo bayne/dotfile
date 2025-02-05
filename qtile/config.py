@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import asyncio
+import sys
 from datetime import datetime, timedelta
 
 from libqtile import bar, layout, qtile, widget, hook, log_utils
@@ -51,6 +52,11 @@ def get_password(entry):
 OUTLOOK_EVENT_URL = get_password("outlook-event-url")
 
 class OutlookChecker(widget.base.ThreadPoolText):
+    SHOW_AS_RANK = {
+        "busy": 0,
+        "tentative": 1,
+    }
+
     defaults = [
         ("update_interval", 600, "Update time in seconds."),
         ("timezone", pytz.timezone('America/Los_Angeles'), "Timezone"),
@@ -65,6 +71,10 @@ class OutlookChecker(widget.base.ThreadPoolText):
         self.foreground_inactive = self.foreground
         self.force_update()
 
+    def _show_as_rank(self, show_as: str) -> int:
+        if show_as not in self.SHOW_AS_RANK:
+            return sys.maxsize
+        return self.SHOW_AS_RANK[show_as]
 
     def _get_datetime(self, date_string: str):
         return pytz.utc.localize(datetime.fromisoformat(date_string)).astimezone(self.timezone)
@@ -76,6 +86,7 @@ class OutlookChecker(widget.base.ThreadPoolText):
         response = requests.get(self.url)
         events = response.json()['value']
         events = filter(lambda e: e['isReminderOn'], events)
+        events = sorted(events, key=lambda e: self._show_as_rank(e['showAs']))
         events = filter(lambda e: self._get_datetime(e['start']) > now or now <= self._get_datetime(e['end']), events)
         next_event = min(events, default={}, key=lambda e: e['start'])
         if not next_event:
