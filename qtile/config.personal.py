@@ -22,8 +22,8 @@ keys = get_default_keys(mod)
 groups = [Group(name=i, screen_affinity=0) for i in "123456789"]
 keys.extend(get_default_switch_group_keys(mod, 9))
 keys.extend([
-    Key([mod, "control"], "k", lazy.screen.next_group(), desc="next"),
-    Key([mod, "control"], "j", lazy.screen.prev_group(), desc="prev"),
+    Key([mod, "control"], "j", lazy.screen.next_group(), desc="next"),
+    Key([mod, "control"], "k", lazy.screen.prev_group(), desc="prev"),
 ])
 
 layouts: List[Layout] = get_default_layouts()
