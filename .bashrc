@@ -130,6 +130,7 @@ set -o vi
 export ANDROID_SDK_ROOT=~/Code/Android
 PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$PATH:/home/bpayne/.bin
+export PATH=$PATH:/home/bpayne/.local/bin
 eval "$(jira --completion-script-bash)"
 
 export DOCKER_HOST="unix:///var/run/docker.sock"

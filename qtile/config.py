@@ -24,6 +24,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import asyncio
+import os
 import sys
 from datetime import datetime, timedelta
 
@@ -68,6 +69,7 @@ class OutlookChecker(widget.base.ThreadPoolText):
     def __init__(self, **config):
         widget.base.ThreadPoolText.__init__(self, "", **config)
         self.add_defaults(OutlookChecker.defaults)
+        self.markup = False
         self.foreground_inactive = self.foreground
         self.force_update()
 
@@ -79,13 +81,12 @@ class OutlookChecker(widget.base.ThreadPoolText):
     def _get_datetime(self, date_string: str):
         return pytz.utc.localize(datetime.fromisoformat(date_string)).astimezone(self.timezone)
 
-
     def poll(self):
         now = datetime.now(self.timezone)
 
         response = requests.get(self.url)
         events = response.json()['value']
-        events = filter(lambda e: e['isReminderOn'], events)
+        events = filter(lambda e: e['isReminderOn'] or e['showAs'] == 'busy', events)
         events = sorted(events, key=lambda e: self._show_as_rank(e['showAs']))
         events = filter(lambda e: self._get_datetime(e['start']) > now or now <= self._get_datetime(e['end']), events)
         next_event = min(events, default={}, key=lambda e: e['start'])
@@ -112,6 +113,19 @@ async def restack_intellij(client):
         await asyncio.sleep(0.5)
         client.bring_to_front()
 
+@hook.subscribe.client_new
+async def center_modal(client):
+    if "center-modal" in client.get_wm_class() and client.has_focus:
+        client.enable_floating()
+        client.bring_to_front()
+        client.center()
+
+@hook.subscribe.client_new
+async def gpauth(client):
+    if "gpauth" in client.get_wm_class() and client.has_focus:
+        client.enable_floating()
+        client.bring_to_front()
+        client.center()
 
 @hook.subscribe.startup_once
 def startup():
@@ -125,6 +139,9 @@ def startup():
 mod = "mod4"
 terminal = guess_terminal()
 
+env = os.environ.copy()
+env.update({'PATH': env['PATH'] + ':/home/bpayne/.bin'})
+
 # https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -134,7 +151,7 @@ keys = [
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    Key([mod], "Tab", lazy.layout.next(), desc="Move window focus to other window"),
     # Move windows between left/right columns or move up/down in current stack.
     # Moving out of range in Columns layout will create new column.
     Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
@@ -160,7 +177,7 @@ keys = [
     ),
     Key([mod], "t", lazy.spawn(terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    # Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
     Key(
         [mod],
@@ -173,7 +190,9 @@ keys = [
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     # Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 
-    Key([mod], "r", lazy.spawn('rofi -show combi -modi "combi" -combi-modi "window,drun,run"'), desc="Spawn a command using a prompt widget"),
+    Key([mod], "r", lazy.spawn(cmd='rofi -show combi -modi "combi" -combi-modi "window,drun,run"',
+                               env=env,
+                               shell=True), desc="Spawn a command using a prompt widget"),
 ]
 
 # Add key bindings to switch VTs in Wayland.
@@ -190,7 +209,7 @@ for vt in range(1, 8):
     )
 
 
-groups = [Group(i) for i in "123456789"]
+groups = [Group(name=i, screen_affinity=0) for i in "12345678"]
 
 for i in groups:
     keys.extend(
@@ -199,22 +218,35 @@ for i in groups:
             Key(
                 [mod],
                 i.name,
-                lazy.group[i.name].toscreen(),
+                lazy.group[i.name].toscreen(0),
                 desc="Switch to group {}".format(i.name),
             ),
             # mod + shift + group number = switch to & move focused window to group
             Key(
                 [mod, "shift"],
                 i.name,
-                lazy.window.togroup(i.name, switch_group=True),
+                lazy.window.togroup(i.name, switch_group=False),
                 desc="Switch to & move focused window to group {}".format(i.name),
             ),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod + shift + group number = move focused window to group
-            # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
-            #     desc="move focused window to group {}".format(i.name)),
         ]
     )
+
+groups.append(Group(
+    name="9",
+    screen_affinity=1,
+    layouts=[layout.Max()],
+))
+keys.extend(
+    [
+        Key(
+            [mod, "shift"],
+            "9",
+            lazy.window.togroup("9", switch_group=False),
+            lazy.group["9"].toscreen(1),
+            desc="move focused window to group 9",
+        ),
+    ]
+)
 
 layouts = [
     # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2, num_columns=3),
@@ -250,6 +282,7 @@ extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
+        background="#111",
         top=bar.Bar(
             widgets=
             [
@@ -276,6 +309,11 @@ screens = [
         # This variable is set to None (no cap) by default, but you can set it to 60 to indicate that you limit it to 60 events per second
         # x11_drag_polling_rate = 60,
     ),
+    Screen(
+        width=1920,
+        height=1080,
+        background="#333",
+    )
 ]
 
 # Drag floating layouts.
@@ -287,10 +325,10 @@ mouse = [
 
 dgroups_key_binder = None
 dgroups_app_rules = []  # type: list
-follow_mouse_focus = True
+follow_mouse_focus = False
 bring_front_click = False
 floats_kept_above = True
-cursor_warp = False
+cursor_warp = True
 floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
