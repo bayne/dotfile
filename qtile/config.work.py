@@ -4,12 +4,13 @@ from typing import List
 from libqtile import layout, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
+from scipy.constants import bar
 
 from bayne import get_default_keys, get_default_switch_group_keys
 from bayne import systemd_logging
 from bayne.hooks import popover
 from bayne.widgets.outlook_checker import OutlookChecker
-from qtile.bayne import get_widget_defaults, get_default_main_screen, get_default_floating
+from qtile.bayne import get_widget_defaults, get_default_floating
 
 popover.init(restack=[
     'jetbrains-idea'
@@ -59,16 +60,19 @@ widget_defaults = get_widget_defaults()
 extension_defaults = widget_defaults.copy()
 
 screens = [
-    get_default_main_screen(
-        top_widgets=[
-            widget.GroupBox(),
-            widget.WindowName(),
-            widget.Clock(format="%a %b %d %I:%M:%S %p"),
-            OutlookChecker(),
-            widget.Spacer(),
-            widget.Systray(),
-        ],
-        top_background="#591a7d"
+    Screen(
+        background="#555",
+        top=bar.Bar(
+            widgets=[
+                widget.GroupBox(),
+                widget.WindowName(),
+                widget.Clock(format="%a %b %d %I:%M:%S %p"),
+                OutlookChecker(),
+                widget.Spacer(),
+                widget.Systray(),
+            ],
+            background="#591a7d"
+        ),
     ),
     Screen(
         width=1920,

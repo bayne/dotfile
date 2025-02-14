@@ -1,6 +1,6 @@
 from typing import List
 
-from libqtile import layout, widget
+from libqtile import layout, widget, bar
 from libqtile.config import Group, Screen, Mouse, Key
 from libqtile.layout.base import Layout
 from libqtile.lazy import lazy
@@ -8,7 +8,7 @@ from libqtile.lazy import lazy
 from bayne import get_default_keys, get_default_switch_group_keys, get_default_mouse
 from bayne import systemd_logging
 from bayne.hooks import popover
-from bayne import get_widget_defaults, get_default_main_screen, get_default_floating, get_default_layouts
+from bayne import get_widget_defaults, get_default_floating, get_default_layouts
 
 popover.init(restack=[
     'jetbrains-idea'
@@ -32,15 +32,19 @@ widget_defaults: dict = get_widget_defaults()
 extension_defaults = widget_defaults.copy()
 
 screens: List[Screen] = [
-    get_default_main_screen(
-        top_widgets=[
-            widget.GroupBox(),
-            widget.WindowName(),
-            widget.Clock(format="%a %b %d %I:%M:%S %p"),
-            widget.Spacer(),
-            widget.Systray(),
-        ],
-        top_background="#222"
+    Screen(
+        background="#555",
+        top=bar.Bar(
+            widgets=[
+                widget.GroupBox(),
+                widget.WindowName(),
+                widget.Clock(format="%a %b %d %I:%M:%S %p"),
+                widget.Spacer(),
+                widget.Systray(),
+            ],
+            size=24,
+            background="#222",
+        ),
     )
 ]
 

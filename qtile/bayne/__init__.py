@@ -54,17 +54,6 @@ def get_widget_defaults() -> dict:
         padding=3,
     )
 
-def get_default_main_screen(top_widgets, top_background) -> Screen:
-    return Screen(
-        background="#555",
-        top=bar.Bar(
-            widgets=top_widgets
-            ,
-            size=24,
-            background=top_background
-        ),
-    )
-
 def get_default_floating() -> List[Match]:
     return [
         Match(wm_class="confirmreset"),  # gitk
