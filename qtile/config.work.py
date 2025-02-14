@@ -4,7 +4,6 @@ from typing import List
 from libqtile import layout, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
-from libqtile.utils import guess_terminal
 
 from bayne import get_default_keys, get_default_switch_group_keys
 from bayne import systemd_logging
@@ -32,6 +31,10 @@ keys: List[Key] = get_default_keys(mod)
 
 groups: List[Group] = [Group(name=i, screen_affinity=0) for i in "12345678"]
 keys.extend(get_default_switch_group_keys(mod, 8))
+keys.extend([
+    Key([mod, "control"], "l", lazy.screen.next_group(), desc="next"),
+    Key([mod, "control"], "h", lazy.screen.prev_group(), desc="prev"),
+])
 
 groups.append(Group(
     name="9",

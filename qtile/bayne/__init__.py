@@ -23,8 +23,6 @@ def get_default_keys(mod: str) -> List[Key]:
         # Grow windows. If current window is on the edge of screen and direction
         # will be to screen edge - window would shrink.
         Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
-        Key([mod, "control"], "l", lazy.screen.next_group(), desc="next"),
-        Key([mod, "control"], "h", lazy.screen.prev_group(), desc="prev"),
         Key([mod], "t", lazy.spawn('alacritty'), desc="Launch terminal"),
         Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
         Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
