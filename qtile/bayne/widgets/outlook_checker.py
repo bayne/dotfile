@@ -1,9 +1,11 @@
 import sys
 from datetime import datetime
 
-from libqtile import widget
+from libqtile import widget, log_utils
 
 import subprocess, requests, pytz
+
+logger = log_utils.logger
 
 def _get_password(entry):
     result = subprocess.run(["pass", entry], capture_output=True, text=True, check=True)
@@ -38,7 +40,7 @@ class OutlookChecker(widget.base.ThreadPoolText):
     def _get_datetime(self, date_string: str):
         return pytz.utc.localize(datetime.fromisoformat(date_string)).astimezone(self.timezone)
 
-    def poll(self):
+    def _poll(self):
         now = datetime.now(self.timezone)
 
         response = requests.get(self.url)
@@ -63,3 +65,11 @@ class OutlookChecker(widget.base.ThreadPoolText):
             self.foreground = self.foreground_inactive
 
         return f"[[{subject} {day} @ {start_time}-{end_time}]]"
+
+    def poll(self):
+        try:
+            return self._poll()
+        except Exception as e:
+            logger.error("Failed to poll for outlook events", e)
+            return f"Error something went wrong"
+
