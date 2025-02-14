@@ -23,15 +23,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import asyncio
+import os
+import sys
+from datetime import datetime, timedelta
 
-from libqtile import bar, layout, qtile, widget
+from libqtile import bar, layout, qtile, widget, hook, log_utils
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
+import subprocess, requests, logging, pytz
+from bayne import systemd_logging
+from bayne.hooks import popover
+
+popover.init()
+systemd_logging.init()
+
+@hook.subscribe.startup_once
+def startup():
+    pass
+    # subprocess.run(["/home/bpayne/.screenlayout/default.sh"])
+    # subprocess.Popen(["/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1"])
+    # home dir backup
+    # subprocess.Popen(["/usr/bin/vorta"])
+    # subprocess.run(["/usr/bin/systemctl --user start spice-vdagent"])
+
+# windows key
 mod = "mod4"
 terminal = guess_terminal()
 
+env = os.environ.copy()
+env.update({'PATH': env['PATH'] + ':/home/bpayne/.bin'})
+
+# https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
 keys = [
     # A list of available commands that can be bound to keys can be found
     # at https://docs.qtile.org/en/latest/manual/config/lazy.html
@@ -40,21 +65,20 @@ keys = [
     Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
+    Key([mod], "Tab", lazy.layout.next(), desc="Move window focus to other window"),
     # Move windows between left/right columns or move up/down in current stack.
     # Moving out of range in Columns layout will create new column.
     Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
     Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"),
     Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
     Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    # mod1 is alt key
+    Key(["mod1", "shift"], "4", lazy.spawn('flameshot gui'), desc="screenshot"),
     # Grow windows. If current window is on the edge of screen and direction
     # will be to screen edge - window would shrink.
-    Key([mod, "control"], "h", lazy.layout.grow_left(), desc="Grow window to the left"),
-    Key([mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"),
-    # Key([mod, "control"], "j", lazy.layout.grow_down(), desc="Grow window down"),
-    # Key([mod, "control"], "k", lazy.layout.grow_up(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.normalize(), desc="Reset all window sizes"),
-    Key([mod, "control"], "j", lazy.next_screen(), desc="next"),
+    Key([mod, "control"], "l", lazy.screen.next_group(), desc="next"),
+    Key([mod, "control"], "h", lazy.screen.prev_group(), desc="prev"),
     # Toggle between split and unsplit sides of stack.
     # Split = all windows displayed
     # Unsplit = 1 window displayed, like Max layout, but still with
@@ -65,22 +89,24 @@ keys = [
         lazy.layout.toggle_split(),
         desc="Toggle between split and unsplit sides of stack",
     ),
-    Key([mod], "Return", lazy.spawn(terminal), desc="Launch terminal"),
+    Key([mod], "t", lazy.spawn(terminal), desc="Launch terminal"),
     # Toggle between different layouts as defined below
-    Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
-    Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
+    # Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
+    Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
     Key(
         [mod],
         "f",
         lazy.window.toggle_fullscreen(),
         desc="Toggle fullscreen on the focused window",
     ),
-    Key([mod], "t", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    Key([mod], "g", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     # Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 
-    Key([mod], "r", lazy.spawn('rofi -show combi -modi "combi" -combi-modi "window,drun,run"'), desc="Spawn a command using a prompt widget"),
+    Key([mod], "r", lazy.spawn(cmd='rofi -show combi -modi "combi" -combi-modi "window,drun,run"',
+                               env=env,
+                               shell=True), desc="Spawn a command using a prompt widget"),
 ]
 
 # Add key bindings to switch VTs in Wayland.
@@ -97,7 +123,7 @@ for vt in range(1, 8):
     )
 
 
-groups = [Group(i) for i in "123456789"]
+groups = [Group(name=i, screen_affinity=0) for i in "12345678"]
 
 for i in groups:
     keys.extend(
@@ -106,38 +132,59 @@ for i in groups:
             Key(
                 [mod],
                 i.name,
-                lazy.group[i.name].toscreen(),
+                lazy.group[i.name].toscreen(0),
                 desc="Switch to group {}".format(i.name),
             ),
             # mod + shift + group number = switch to & move focused window to group
             Key(
                 [mod, "shift"],
                 i.name,
-                lazy.window.togroup(i.name, switch_group=True),
+                lazy.window.togroup(i.name, switch_group=False),
                 desc="Switch to & move focused window to group {}".format(i.name),
             ),
-            # Or, use below if you prefer not to switch to that group.
-            # # mod + shift + group number = move focused window to group
-            # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
-            #     desc="move focused window to group {}".format(i.name)),
         ]
     )
 
+groups.append(Group(
+    name="9",
+    screen_affinity=1,
+    layouts=[layout.Max()],
+))
+keys.extend(
+    [
+        Key(
+            [mod, "shift"],
+            "9",
+            lazy.window.togroup("9", switch_group=False),
+            lazy.group["9"].toscreen(1),
+            desc="move focused window to group 9",
+        ),
+    ]
+)
+
 layouts = [
-    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    # layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=2, num_columns=3),
+    # layout.ScreenSplit(splits=[
+    #     {"name": "top", "rect": (0, 0, 1, 0.5), "layout": layout.Columns()},
+    #     {"name": "bottom", "rect": (0, 0.5, 1, 0.5), "layout": layout.Columns()},
+    # ])
     # layout.Max(),
     # Try more layouts by unleashing below layouts.
-    # layout.Stack(num_stacks=2),
+    # layout.Stack(num_stacks=3),
     # layout.Bsp(),
-    # layout.Matrix(),
+    # layout.Matrix(columns=3),
     # layout.MonadTall(),
+
     layout.MonadThreeCol(auto_maximize=True),
+
     # layout.MonadWide(),
     # layout.RatioTile(),
     # layout.Tile(),
     # layout.TreeTab(),
     # layout.VerticalTile(),
+    # layout.Plasma(),
     # layout.Zoomy(),
+    # layout.Slice(),
 ]
 
 widget_defaults = dict(
@@ -149,19 +196,16 @@ extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
+        background="#333",
         top=bar.Bar(
+            widgets=
             [
                 # widget.CurrentLayout(),
-                widget.Clock(format="%Y-%m-%d %a %I:%M:%S %p"),
                 widget.GroupBox(),
-                widget.Prompt(),
+                # widget.Prompt(),
                 widget.WindowName(),
-                widget.Chord(
-                    chords_colors={
-                        "launch": ("#ff0000", "#ffffff"),
-                    },
-                    name_transform=lambda name: name.upper(),
-                ),
+                widget.Clock(format="%a %b %d %I:%M:%S %p"),
+                # OutlookChecker(),
                 # widget.TextBox("default config", name="default"),
                 # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
@@ -169,7 +213,8 @@ screens = [
                 widget.Spacer(),
                 widget.Systray(),
             ],
-            24,
+            size=24,
+            background="#591a7d"
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
@@ -178,6 +223,11 @@ screens = [
         # This variable is set to None (no cap) by default, but you can set it to 60 to indicate that you limit it to 60 events per second
         # x11_drag_polling_rate = 60,
     ),
+    # Screen(
+    #     width=1920,
+    #     height=1080,
+    #     background="#333",
+    # )
 ]
 
 # Drag floating layouts.
@@ -189,10 +239,10 @@ mouse = [
 
 dgroups_key_binder = None
 dgroups_app_rules = []  # type: list
-follow_mouse_focus = True
+follow_mouse_focus = False
 bring_front_click = False
 floats_kept_above = True
-cursor_warp = False
+cursor_warp = True
 floating_layout = layout.Floating(
     float_rules=[
         # Run the utility of `xprop` to see the wm class and name of an X client.
