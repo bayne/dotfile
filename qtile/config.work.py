@@ -1,16 +1,15 @@
 import subprocess
 from typing import List
 
-from libqtile import layout, widget, hook
+from libqtile import layout, widget, hook, bar
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
+from libqtile.layout.base import Layout
 from libqtile.lazy import lazy
-from scipy.constants import bar
-
 from bayne import get_default_keys, get_default_switch_group_keys
 from bayne import systemd_logging
 from bayne.hooks import popover
 from bayne.widgets.outlook_checker import OutlookChecker
-from qtile.bayne import get_widget_defaults, get_default_floating
+from bayne import get_widget_defaults, get_default_floating, get_default_layouts
 
 popover.init(restack=[
     'jetbrains-idea'
@@ -23,7 +22,7 @@ def startup():
     subprocess.Popen(["/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1"])
     # home dir backup
     subprocess.Popen(["/usr/bin/vorta"])
-    subprocess.run(["/usr/bin/systemctl --user start spice-vdagent"])
+    subprocess.run(["/usr/bin/systemctl", "--user", "start", "spice-vdagent"])
 
 mod: str = "mod4"
 
@@ -54,7 +53,7 @@ keys.extend(
     ]
 )
 
-layouts = get_default_floating()
+layouts: List[Layout] = get_default_layouts()
 
 widget_defaults = get_widget_defaults()
 extension_defaults = widget_defaults.copy()
@@ -71,7 +70,8 @@ screens = [
                 widget.Spacer(),
                 widget.Systray(),
             ],
-            background="#591a7d"
+            size=24,
+            background="#591a7d",
         ),
     ),
     Screen(
