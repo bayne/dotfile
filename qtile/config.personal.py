@@ -1,9 +1,10 @@
 from typing import List
 
-from libqtile import layout, widget, bar
+from libqtile import layout, widget, bar, hook, log_utils, qtile
 from libqtile.config import Group, Screen, Mouse, Key
 from libqtile.layout.base import Layout
 from libqtile.lazy import lazy
+import asyncio
 
 from bayne import get_default_keys, get_default_switch_group_keys, get_default_mouse
 from bayne import systemd_logging
@@ -15,15 +16,34 @@ popover.init(restack=[
 ])
 systemd_logging.init()
 
+W1_GROUP = "W1"
+W2_GROUP = "W2"
+
+logger = log_utils.logger
+
+@hook.subscribe.client_new
+@hook.subscribe.client_name_updated
+async def new_work_virt_viewer(client):
+    if "remote-viewer" in client.get_wm_class():
+        if "work (1)" in client.name:
+            client.togroup(W1_GROUP)
+            qtile.groups[9].toscreen(0)
+            await asyncio.sleep(1.0)
+            qtile.spawn(['xdotool', 'key', 'F11'])
+        elif "work (2)" in client.name:
+            client.togroup(W2_GROUP)
+
 mod = "mod4"
 # https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
 keys = get_default_keys(mod)
 
 groups = [Group(name=i, screen_affinity=0) for i in "123456789"]
+groups.append(Group(name=W1_GROUP, screen_affinity=0))
+groups.append(Group(name=W2_GROUP, screen_affinity=0))
 keys.extend(get_default_switch_group_keys(mod, 9))
 keys.extend([
-    Key([mod, "control"], "j", lazy.screen.next_group(), desc="next"),
-    Key([mod, "control"], "k", lazy.screen.prev_group(), desc="prev"),
+    Key(['mod1', "control"], "9", lazy.group[W1_GROUP].toscreen(), desc="W1"),
+    Key(['mod1', "control"], "0", lazy.group[W2_GROUP].toscreen(), desc="W2"),
 ])
 
 layouts: List[Layout] = get_default_layouts()
@@ -55,7 +75,7 @@ dgroups_app_rules = []  # type: list
 follow_mouse_focus = False
 bring_front_click: bool = False
 floats_kept_above: bool = True
-cursor_warp: bool = True
+cursor_warp: bool = False
 floating_layout: layout.Floating = layout.Floating(
    float_rules=[
        *layout.Floating.default_float_rules,
