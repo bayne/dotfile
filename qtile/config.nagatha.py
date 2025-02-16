@@ -31,7 +31,11 @@ keys.extend([
 
 layouts: List[Layout] = get_default_layouts()
 
-widget_defaults: dict = get_widget_defaults()
+widget_defaults: dict = dict(
+    font="sans",
+    fontsize=18,
+    padding=3,
+)
 extension_defaults = widget_defaults.copy()
 
 screens: List[Screen] = [
@@ -47,7 +51,7 @@ screens: List[Screen] = [
                 widget.Battery(),
                 widget.Systray(),
             ],
-            size=24,
+            size=32,
             background="#222",
         ),
     )
