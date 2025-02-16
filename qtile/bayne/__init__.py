@@ -27,7 +27,7 @@ def get_default_keys(mod: str) -> List[Key]:
         Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
         Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
         Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-        Key([mod], "r", lazy.spawn(cmd='rofi -show combi -modi "combi" -combi-modi "window,drun,run"',
+        Key([mod], "r", lazy.spawn(cmd='rofi -show combi -modi "combi" -combi-modi "window,drun,run" -show-icons',
                                    env=env,
                                    shell=True), desc="Spawn a command using a prompt widget"),
     ]
