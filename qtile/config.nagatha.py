@@ -44,7 +44,9 @@ keys.extend([
     ),
 ])
 
-layouts: List[Layout] = get_default_layouts()
+layouts: List[Layout] = [
+    layout.bsp.Bsp()
+]
 
 widget_defaults: dict = dict(
     font="sans",
@@ -62,6 +64,11 @@ screens: List[Screen] = [
                 widget.WindowName(),
                 widget.Clock(format="%a %b %d %I:%M:%S %p"),
                 widget.Spacer(),
+                widget.Wttr(
+                    format='%c%C %t(%f) %w %h %p',
+                    location={'Portland': 'Home'},
+                    units='u',
+                ),
                 widget.Backlight(
                     background='#551',
                     fmt='☀️{}',
