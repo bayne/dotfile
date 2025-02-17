@@ -27,6 +27,21 @@ keys.extend(get_default_switch_group_keys(mod, 9))
 keys.extend([
     Key([], 'XF86MonBrightnessUp', lazy.spawn('sudo light -A 10'), desc='Increase brightness'),
     Key([], 'XF86MonBrightnessDown', lazy.spawn('sudo light -U 10'), desc='Decrease brightness'),
+    Key([], 'XF86AudioMute',
+        lazy.spawn('wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle'),
+        lazy.spawn('pw-play /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga'),
+        desc='Mute',
+    ),
+    Key([], 'XF86AudioLowerVolume',
+        lazy.spawn('wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%- -l 1.0'),
+        lazy.spawn('pw-play /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga'),
+        desc='Decrease volume',
+    ),
+    Key([], 'XF86AudioRaiseVolume',
+        lazy.spawn('wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%+ -l 1.0'),
+        lazy.spawn('pw-play /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga'),
+        desc='Increase volume',
+    ),
 ])
 
 layouts: List[Layout] = get_default_layouts()
@@ -47,13 +62,44 @@ screens: List[Screen] = [
                 widget.WindowName(),
                 widget.Clock(format="%a %b %d %I:%M:%S %p"),
                 widget.Spacer(),
-                widget.Backlight(backlight_name='amdgpu_bl0'),
-                widget.Battery(),
+                widget.Backlight(
+                    background='#551',
+                    fmt='☀️{}',
+                    backlight_name='amdgpu_bl0'
+                ),
+                widget.Volume(
+                    emoji=False,
+                    fmt='🔊{}',
+                    background='#135',
+                ),
+                widget.Battery(
+                    background='#133',
+                    format='{char} {percent:2.0%} {hour:d}h{min:02d}m',
+                    charge_char='🔌',
+                    discharge_char='🔋',
+                ),
                 widget.Systray(),
             ],
             size=32,
             background="#222",
         ),
+        bottom=bar.Bar(
+            widgets=[
+                widget.Spacer(),
+                widget.TextBox(fmt="🌐",),
+                widget.NetGraph(
+                    type='line',
+                ),
+                widget.TextBox(fmt="⚙️",),
+                widget.CPUGraph(
+                    type='line',
+                ),
+                widget.TextBox(fmt="🔲",),
+                widget.MemoryGraph(),
+            ],
+            size=32,
+            background="#222",
+        )
     )
 ]
 
