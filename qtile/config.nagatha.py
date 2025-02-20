@@ -42,6 +42,11 @@ keys.extend([
         lazy.spawn('pw-play /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga'),
         desc='Increase volume',
     ),
+    Key([mod, 'control'], 'l',
+        lazy.spawn('lock'),
+        desc='Lock screen',
+    ),
+
 ])
 
 layouts: List[Layout] = [
@@ -67,6 +72,7 @@ screens: List[Screen] = [
                 widget.Wttr(
                     format='%c%C %t(%f) %w %h %p',
                     location={'Portland': 'Home'},
+                    update_interval=30,
                     units='u',
                 ),
                 widget.Backlight(
