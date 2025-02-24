@@ -124,6 +124,15 @@ if [ -f ~/.git-completion.sh ]; then
     . ~/.git-completion.sh
 fi
 
+if [ -f ~/.pyenv.sh ]; then
+    . ~/.pyenv.sh
+fi
+
+if [ -f ~/.intellij.sh ]; then
+    . ~/.intellij.sh
+fi
+
+
 # vim mode
 set -o vi
 

@@ -5,9 +5,12 @@ from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 import os
 
-def get_default_keys(mod: str) -> List[Key]:
+from bayne.rofi import Rofi, RofiScript
+
+def get_default_keys(mod: str, rofi: Rofi = None) -> List[Key]:
     env = os.environ.copy()
     env.update({'PATH': env['PATH'] + ':/home/bpayne/.bin'})
+    rofi = Rofi([]) if rofi is None else rofi
     return [
         Key([mod], "h", lazy.layout.left(), desc="Move focus to left"),
         Key([mod], "l", lazy.layout.right(), desc="Move focus to right"),
@@ -27,9 +30,7 @@ def get_default_keys(mod: str) -> List[Key]:
         Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
         Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
         Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
-        Key([mod], "r", lazy.spawn(cmd='rofi -show combi -modi "combi" -combi-modi "window,drun,run" -show-icons',
-                                   env=env,
-                                   shell=True), desc="Spawn a command using a prompt widget"),
+        Key([mod], "r", rofi.show())
     ]
 
 def get_default_switch_group_keys(mod, count) -> Iterable[Key]:
