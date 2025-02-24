@@ -7,6 +7,7 @@ from libqtile.layout.base import Layout
 from libqtile.lazy import lazy
 from bayne import get_default_keys, get_default_switch_group_keys
 from bayne import systemd_logging
+from bayne.rofi import Rofi, RofiScript
 from bayne.hooks import popover
 from bayne.widgets.outlook_checker import OutlookChecker
 from bayne import get_widget_defaults, get_default_floating, get_default_layouts
@@ -26,8 +27,10 @@ def startup():
 
 mod: str = "mod4"
 
+rofi = Rofi([RofiScript(name="intellij", path="/home/bpayne/Code/mine/dotfile/rofi-scripts/intellij.py")])
+
 # https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
-keys: List[Key] = get_default_keys(mod)
+keys: List[Key] = get_default_keys(mod, rofi)
 
 groups: List[Group] = [Group(name=i, screen_affinity=0) for i in "12345678"]
 keys.extend(get_default_switch_group_keys(mod, 8))
