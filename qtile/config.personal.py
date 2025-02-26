@@ -1,3 +1,4 @@
+import subprocess
 from typing import List
 
 from libqtile import layout, widget, bar, hook, log_utils, qtile
@@ -15,6 +16,12 @@ popover.init(restack=[
     'jetbrains-idea'
 ])
 systemd_logging.init()
+
+@hook.subscribe.startup_once
+def startup():
+    subprocess.Popen(["/usr/lib/policykit-1-gnome/polkit-gnome-authentication-agent-1"])
+    # home dir backup
+    subprocess.Popen(["/usr/bin/vorta"])
 
 W1_GROUP = "W1"
 W2_GROUP = "W2"
@@ -44,6 +51,10 @@ keys.extend(get_default_switch_group_keys(mod, 9))
 keys.extend([
     Key(['mod1', "control"], "9", lazy.group[W1_GROUP].toscreen(), desc="W1"),
     Key(['mod1', "control"], "0", lazy.group[W2_GROUP].toscreen(), desc="W2"),
+    Key([mod, 'control'], 'l',
+        lazy.spawn('lock'),
+        desc='Lock screen',
+    ),
 ])
 
 layouts: List[Layout] = get_default_layouts()

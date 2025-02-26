@@ -140,16 +140,12 @@ export ANDROID_SDK_ROOT=~/Code/Android
 PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$PATH:/home/bpayne/.bin
 export PATH=$PATH:/home/bpayne/.local/bin
-eval "$(jira --completion-script-bash)"
+#eval "$(jira --completion-script-bash)"
 
 export DOCKER_HOST="unix:///var/run/docker.sock"
 
-. $HOME/.asdf/asdf.sh
-. $HOME/.asdf/completions/asdf.bash
-. $HOME/.kubectl_completion
 export VISUAL=vim
 export EDITOR="$VISUAL"
-#source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/bashrc"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias cddotfile='cd /home/bpayne/Code/mine/dotfile'
 eval "$(direnv hook bash)"
