@@ -149,4 +149,4 @@ export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias cddotfile='cd /home/bpayne/Code/mine/dotfile'
 eval "$(direnv hook bash)"
-[ -z "$TMUX" ] && exec tmux
+[ -z "$TMUX" ] && tmux
