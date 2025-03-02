@@ -154,3 +154,6 @@ alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias cddotfile='cd /home/bpayne/Code/mine/dotfile'
 eval "$(direnv hook bash)"
 [ -z "$TMUX" ] && exec tmux
+if [ -f ~/.cdable_vars.sh ]; then
+    . ~/.cdable_vars.sh
+fi
