@@ -147,9 +147,10 @@ export DOCKER_HOST="unix:///var/run/docker.sock"
 export VISUAL=vim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
-alias cddotfile='cd /home/bpayne/Code/mine/dotfile'
 eval "$(direnv hook bash)"
 if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
 fi
-[ -z "$SSH_CONNECTION" ] && exec tmux
+if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
+    exec tmux
+fi
