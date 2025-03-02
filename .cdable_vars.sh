@@ -1,7 +1,19 @@
 shopt -s cdable_vars
-if [ -f ~/.cdable_vars.local.sh ]; then
-    . ~/.cdable_vars.local.sh
+export dotfile_cdv=~/Code/mine/dotfile
+
+if [ .f ~/.cdable_vars.local.sh ]; then
+    .  ~/.cdable_vars.local.sh
 fi
 
-export dotfile=~/Code/mine/dotfile
-export qtile=~/Code/mine/dotfile
+# Custom directory bookmarks
+#CD_BOOKMARKS=("dotfile_cdv")
+CD_BOOKMARKS=$(env | fgrep '_cdv=' | cut -f1 -d=)
+
+_cd_custom_complete() {
+
+    _cd
+
+    COMPREPLY+=( $(compgen -W "${CD_BOOKMARKS}" -- "${COMP_WORDS[COMP_CWORD]}") )
+}
+
+complete -o nospace -F _cd_custom_complete cd
