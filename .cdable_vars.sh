@@ -1,7 +1,7 @@
 shopt -s cdable_vars
 export dotfile_cdv=~/Code/mine/dotfile
 
-if [ .f ~/.cdable_vars.local.sh ]; then
+if [ -f ~/.cdable_vars.local.sh ]; then
     .  ~/.cdable_vars.local.sh
 fi
 
