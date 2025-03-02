@@ -152,4 +152,4 @@ eval "$(direnv hook bash)"
 if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
 fi
-[ -z "$TMUX" ] && tmux
+[ -z "$TMUX" ] && exec tmux
