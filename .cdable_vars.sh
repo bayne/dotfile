@@ -1,6 +1,6 @@
 shopt -s cdable_vars
-export qqdot_cdv=~/Code/mine/dotfile
-export qqmi_cdv=~/Code/mine
+export qqdot_dotfile_cdv=~/Code/mine/dotfile
+export qqmi_mine_cdv=~/Code/mine
 
 if [ -f ~/.cdable_vars.local.sh ]; then
     .  ~/.cdable_vars.local.sh
