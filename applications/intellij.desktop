@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=IntelliJ
+Exec=/home/bpayne/IntelliJ/latest/bin/idea
+Type=Application
+GenericName=IntelliJ
+Terminal=false
+Icon=idea
+Comment=IntelliJ
+Categories=Development;
+Keywords=java;development;

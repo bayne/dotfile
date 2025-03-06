@@ -1,4 +1,4 @@
-#!/home/bpayne/Code/Github/pyenv/versions/rofi-scripts/bin/python
+#!/home/bpayne/Code/Github/pyenv/versions/rofi-scripts/bin/python3
 
 import os
 import subprocess

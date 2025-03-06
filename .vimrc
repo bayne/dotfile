@@ -78,3 +78,9 @@ nnoremap q <C-w>
 set clipboard^=unnamedplus,unnamedplus
 
 set expandtab
+let g:vim_markdown_folding_disabled = 1
+set conceallevel=2
+let g:markdown_fenced_languages = ['python', 'javascript', 'html', 'css', 'bash=sh', 'json', 'xml', 'c', 'cpp', 'java', 'ruby', 'vim']
+set list
+set listchars=eol:↴,tab:▸\ 
+set fileformats=unix

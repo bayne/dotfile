@@ -7,7 +7,7 @@ from libqtile.layout.base import Layout
 from libqtile.lazy import lazy
 import asyncio
 
-from bayne import get_default_keys, get_default_switch_group_keys, get_default_mouse
+from bayne import get_default_keys, get_default_switch_group_keys, get_default_mouse, Rofi, RofiScript
 from bayne import systemd_logging
 from bayne.hooks import popover
 from bayne import get_widget_defaults, get_default_floating, get_default_layouts
@@ -42,7 +42,8 @@ async def new_work_virt_viewer(client):
 
 mod = "mod4"
 # https://github.com/qtile/qtile/blob/master/libqtile/backend/x11/xkeysyms.py
-keys = get_default_keys(mod)
+rofi = Rofi([RofiScript(name="intellij", path="/home/bpayne/Code/mine/dotfile/rofi-scripts/intellij.py")])
+keys = get_default_keys(mod, rofi)
 
 groups = [Group(name=i, screen_affinity=0) for i in "123456789"]
 groups.append(Group(name=W1_GROUP, screen_affinity=0))
