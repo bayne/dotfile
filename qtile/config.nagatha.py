@@ -83,7 +83,7 @@ screens: List[Screen] = [
                     fmt='☀️{}',
                     backlight_name='amdgpu_bl0'
                 ),
-                widget.Volume(
+                widget.PulseVolume(
                     emoji=False,
                     fmt='🔊{}',
                     background='#135',
