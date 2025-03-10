@@ -152,7 +152,13 @@ if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
 fi
 if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
-    exec tmux
+    SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/words | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
+    exec tmux new-session -s "$SESSION_NAME"
 fi
 . "$HOME/.cargo/env"
 export LESS='-R'
+
+if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
+    . ~/Code/Github/tmux-bash-completion/completions/tmux
+fi
+

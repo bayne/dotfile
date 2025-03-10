@@ -27,7 +27,7 @@ set go-=m
 set go-=T
 set go-=L
 set go-=r
-colors gruvbox
+colorscheme gruvbox
 
 set nocompatible
 
@@ -79,8 +79,9 @@ set clipboard^=unnamedplus,unnamedplus
 
 set expandtab
 let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_conceal_code_blocks = 0
 set conceallevel=2
-let g:markdown_fenced_languages = ['python', 'javascript', 'html', 'css', 'bash=sh', 'json', 'xml', 'c', 'cpp', 'java', 'ruby', 'vim']
+let g:vim_markdown_fenced_languages = ['python', 'javascript', 'html', 'css', 'bash=sh', 'json', 'xml', 'c', 'cpp', 'java', 'ruby', 'vim']
 set list
 set listchars=eol:↴,tab:▸\ 
 set fileformats=unix
