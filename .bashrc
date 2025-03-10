@@ -154,3 +154,5 @@ fi
 if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
     exec tmux
 fi
+. "$HOME/.cargo/env"
+export LESS='-R'

@@ -11,6 +11,9 @@ from bayne import systemd_logging
 from bayne.hooks import popover
 from bayne import get_widget_defaults, get_default_floating, get_default_layouts
 
+BORDER_FOCUS="#CC1111"
+BORDER_NORMAL="#440000"
+
 popover.init(restack=[
     'jetbrains-idea'
 ])
@@ -49,11 +52,16 @@ keys.extend([
         lazy.spawn('lock'),
         desc='Lock screen',
     ),
-
+    Key([mod], 'm', lazy.next_layout(), desc='Next layout'),
 ])
 
 layouts: List[Layout] = [
-    layout.bsp.Bsp()
+    layout.bsp.Bsp(
+        border_focus=BORDER_FOCUS,
+        border_normal=BORDER_NORMAL,
+        wrap_clients=True,
+    ),
+    layout.Max(),
 ]
 
 widget_defaults: dict = dict(
@@ -101,6 +109,12 @@ screens: List[Screen] = [
         ),
         bottom=bar.Bar(
             widgets=[
+                widget.WindowTabs(
+                    parse_text=lambda name: '█',
+                    fmt=f'<span fgcolor="{BORDER_NORMAL}">{"{}"}</span>',
+                    separator='',
+                    selected=(f'<span fgcolor="{BORDER_FOCUS}">', '</span>'),
+                ),
                 widget.Spacer(),
                 widget.TextBox(fmt="🌐",),
                 widget.NetGraph(
