@@ -155,7 +155,9 @@ if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
     SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/words | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
     exec tmux new-session -s "$SESSION_NAME"
 fi
-. "$HOME/.cargo/env"
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
 export LESS='-R'
 
 if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
