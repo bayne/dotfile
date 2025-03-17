@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from libqtile import widget, log_utils
 
@@ -18,7 +18,8 @@ class OutlookChecker(widget.base.ThreadPoolText):
     }
 
     defaults = [
-        ("update_interval", 600, "Update time in seconds."),
+        ("update_interval", 1, "Update time in seconds."),
+        ("request_update_interval", 600, "Request update time in seconds."),
         ("timezone", pytz.timezone('America/Los_Angeles'), "Timezone"),
         ("foreground", "33ff33", "foreground color"),
         ("foreground_active", "ff8888", "foreground color when meeting is active"),
@@ -30,6 +31,8 @@ class OutlookChecker(widget.base.ThreadPoolText):
         self.markup = False
         self.foreground_inactive = self.foreground
         self.url = _get_password("outlook-event-url")
+        self.last_update = datetime.now(self.timezone)
+        self.previous_response = None
         self.force_update()
 
     def _show_as_rank(self, show_as: str) -> int:
@@ -43,7 +46,13 @@ class OutlookChecker(widget.base.ThreadPoolText):
     def _poll(self):
         now = datetime.now(self.timezone)
 
-        response = requests.get(self.url)
+        if not self.previous_response or self.last_update + timedelta(seconds=self.request_update_interval) < now:
+            response = requests.get(self.url)
+            self.previous_response = response
+            self.last_update = now
+        else:
+            response = self.previous_response
+
         events = response.json()['value']
         events = filter(lambda e: e['isReminderOn'] or e['showAs'] == 'busy', events)
         events = sorted(events, key=lambda e: self._show_as_rank(e['showAs']))
