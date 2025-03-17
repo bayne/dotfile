@@ -8,12 +8,15 @@ from libqtile.lazy import lazy
 from bayne import get_default_keys, get_default_switch_group_keys
 from bayne import systemd_logging
 from bayne.rofi import Rofi, RofiScript
-from bayne.hooks import popover
+from bayne.hooks import popover, active_popup
 from bayne.widgets.outlook_checker import OutlookChecker
 from bayne import get_widget_defaults, get_default_floating, get_default_layouts
 
+active_popup.init([
+    'opensnitch-ui',
+])
 popover.init(restack=[
-    'jetbrains-idea'
+    'jetbrains-idea',
 ])
 systemd_logging.init()
 
