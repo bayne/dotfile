@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Alacritty (no tmux)
+Exec=alacritty -e bash
+Type=Application
+Terminal=false
+Icon=alacritty
+Comment=Alacritty (no tmux)
+Categories=Development;
+Keywords=development;
