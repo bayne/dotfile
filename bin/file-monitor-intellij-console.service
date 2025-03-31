@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor IntelliJ console output file and make copies
+
+[Service]
+ExecStart=/usr/local/bin/file-monitor-intellij-console.sh
+Restart=always
+SyslogIdentifier=file-monitor
+
+[Install]
+WantedBy=default.target
