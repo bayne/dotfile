@@ -165,3 +165,4 @@ if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
     . ~/Code/Github/tmux-bash-completion/completions/tmux
 fi
 
+export PROMPT_COMMAND='history -a; command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//"); logger -p user.notice -t bash_command "$USER: $command"'
