@@ -124,14 +124,9 @@ if [ -f ~/.git-completion.sh ]; then
     . ~/.git-completion.sh
 fi
 
-if [ -f ~/.pyenv.sh ]; then
-    . ~/.pyenv.sh
-fi
-
 if [ -f ~/.intellij.sh ]; then
     . ~/.intellij.sh
 fi
-
 
 # vim mode
 set -o vi
@@ -164,5 +159,11 @@ export LESS='-R'
 if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
     . ~/Code/Github/tmux-bash-completion/completions/tmux
 fi
-
 export PROMPT_COMMAND='history -a; command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//"); logger -p user.notice -t bash_command "$USER: $command"'
+
+if [ -f ~/.pyenv.sh ]; then
+    . ~/.pyenv.sh
+fi
+
+git config --global --unset-all mine.repo
+ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
