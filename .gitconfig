@@ -6,5 +6,5 @@
 name = Brian Payne
 email = bwpayne@gmail.com
 [alias]
-q = "!f() { echo \"Repository: $(basename $(git rev-parse --show-toplevel))\"; git status --porcelain --branch; echo ''; }; f"
+q = "!f() { echo \"Repository: $(basename $(git rev-parse --show-toplevel))\"; git status --porcelain --branch | xargs -I{} echo '    {}'; }; f"
 all = for-each-repo --config=mine.repo
