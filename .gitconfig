@@ -2,10 +2,12 @@
 # put this in ~/.gitconfig
 #[include]
 #	path = /home/bpayne/Code/mine/dotfile/.gitconfig
-[user]
-name = Brian Payne
-email = bwpayne@gmail.com
+[notes]
+    repo = /home/bpayne/.config/dotchatbot/sessions
+    repo = /home/bpayne/Documents/notes
 [alias]
-q = !"git rev-parse --show-toplevel; git status --porcelain --branch | xargs -I{} echo '    {}'"
-a = !"git add -p; true"
-all = for-each-repo --config=mine.repo
+    q = !"git rev-parse --show-toplevel; git status --porcelain --branch | xargs -I{} echo '    {}'"
+    a = !"git add -p; true"
+    qqsync = !"git rev-parse --show-toplevel; git add .; git commit -m 'sync'; git pull; git push"
+    ns = for-each-repo --config=notes.repo qqsync
+    all = for-each-repo --config=mine.repo
