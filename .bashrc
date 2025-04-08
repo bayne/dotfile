@@ -142,7 +142,7 @@ export DOCKER_HOST="unix:///var/run/docker.sock"
 export VISUAL=vim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
-alias vitodo='vim /home/bpayne/Documents/todo.txt'
+alias vitodo='vim /home/bpayne/Documents/notes/todo.txt'
 eval "$(direnv hook bash)"
 if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
