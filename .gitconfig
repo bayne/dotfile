@@ -6,5 +6,6 @@
 name = Brian Payne
 email = bwpayne@gmail.com
 [alias]
-q = !git rev-parse --show-toplevel && git status --porcelain --branch | xargs -I{} echo '    {}'
+q = !"git rev-parse --show-toplevel; git status --porcelain --branch | xargs -I{} echo '    {}'"
+a = !"git add -p; true"
 all = for-each-repo --config=mine.repo
