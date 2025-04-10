@@ -148,7 +148,7 @@ if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
 fi
 if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
-    SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/words | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
+    SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
     exec tmux new-session -s "$SESSION_NAME"
 fi
 if [ -f "$HOME/.cargo/env" ]; then
