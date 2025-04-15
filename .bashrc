@@ -143,7 +143,6 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias vitodo='vim /home/bpayne/Documents/notes/todo.txt'
-eval "$(direnv hook bash)"
 if [ -f ~/.cdable_vars.sh ]; then
     . ~/.cdable_vars.sh
 fi
@@ -156,10 +155,13 @@ if [ -f "$HOME/.cargo/env" ]; then
 fi
 export LESS='-R'
 
+export PROMPT_COMMAND='history -a; command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//"); logger -p user.notice -t bash_command "$USER: $command"'
+
 if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
     . ~/Code/Github/tmux-bash-completion/completions/tmux
 fi
-export PROMPT_COMMAND='history -a; command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//"); logger -p user.notice -t bash_command "$USER: $command"'
+
+eval "$(direnv hook bash)"
 
 if [ -f ~/.pyenv.sh ]; then
     . ~/.pyenv.sh
