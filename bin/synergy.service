@@ -1,0 +1,10 @@
+[Unit]
+Description=Synergy server
+
+[Service]
+ExecStart=/usr/bin/synergy-server --no-daemon --debug INFO --name stm --enable-crypto --address :24800 -c /home/bpayne/.config/Synergy/synergy-server.conf --tls-cert /home/bpayne/.synergy/SSL/Synergy.pem -l /dev/stdout
+Restart=always
+SyslogIdentifier=Synergy
+
+[Install]
+WantedBy=default.target
