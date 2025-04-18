@@ -143,14 +143,14 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias vitodo='vim /home/bpayne/Documents/notes/todo.txt'
-if [ -f ~/.cdable_vars.sh ]; then
+if [[ -e ~/.cdable_vars.sh ]]; then
     . ~/.cdable_vars.sh
 fi
 if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
     SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
     exec tmux new-session -s "$SESSION_NAME"
 fi
-if [ -f "$HOME/.cargo/env" ]; then
+if [[ -e "$HOME/.cargo/env" ]]; then
     . "$HOME/.cargo/env"
 fi
 export LESS='-R'
@@ -163,9 +163,14 @@ fi
 
 eval "$(direnv hook bash)"
 
-if [ -f ~/.pyenv.sh ]; then
+if [[ -e ~/.pyenv.sh ]]; then
     . ~/.pyenv.sh
+fi
+
+if [[ -e ~/.gh.sh ]]; then
+    . ~/.gh.sh
 fi
 
 git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
+
