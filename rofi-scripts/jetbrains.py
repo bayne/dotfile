@@ -3,7 +3,7 @@
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-from typing import List
+from typing import List, Set
 
 USER_HOME = os.getenv('HOME') 
 IDEA_EXEC = f"{USER_HOME}/IntelliJ/latest/bin/idea"
@@ -29,6 +29,12 @@ class Project:
         else:
             return f'{self.select_label()}'
 
+    def __hash__(self):
+        return hash(self.path)
+
+    def __eq__(self, other):
+        return  self.path == other.path
+
 for root, _, files in os.walk(CONFIG_DIR):
     for file in files:
         if file == "recentProjects.xml":
@@ -38,7 +44,7 @@ if not recent_projects_files:
     print("No recent projects found")
     exit(1)
 
-projects: List[Project] = []
+projects: Set[Project] = set()
 for recent_projects_file in recent_projects_files:
     jetbrains_exec = IDEA_EXEC if "Idea" in recent_projects_file else CLION_EXEC
     try:
@@ -49,14 +55,16 @@ for recent_projects_file in recent_projects_files:
             project_path = entry.attrib.get("key")
             project_path = project_path.replace("$USER_HOME$", USER_HOME)
             meta_info = entry.find(".//value/RecentProjectMetaInfo")
-            project_name = meta_info.attrib.get("frameTitle", 'Unknown')
             if project_path.endswith('light-edit'):
                 continue
             if not os.path.isdir(project_path):
                 continue
 
+            project_dir_name = os.path.split(project_path)[-1]
+            project_name = meta_info.attrib.get("frameTitle", project_dir_name)
+
             if project_path and project_name:
-                projects.append(
+                projects.add(
                     Project(
                         project_name,
                         project_path,
