@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 scrot /tmp/screen.png
 ffmpeg -y -i /tmp/screen.png -vf "gblur=sigma=32" /tmp/screen_blur.png
 rm /tmp/screen.png

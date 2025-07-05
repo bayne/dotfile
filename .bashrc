@@ -163,14 +163,26 @@ fi
 
 eval "$(direnv hook bash)"
 
+# pyenv
 if [[ -e ~/.pyenv.sh ]]; then
     . ~/.pyenv.sh
 fi
 
+# github
 if [[ -e ~/.gh.sh ]]; then
     . ~/.gh.sh
 fi
 
+# k8 in docker
+if [[ -e ~/.kind.sh ]]; then
+    . ~/.kind.sh
+fi
+
+# helm
+if [[ -e ~/.helm.sh ]]; then
+    . ~/.helm.sh
+fi
+
 git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
-
+complete -C '/home/bpayne/.local/bin/aws_completer' aws
