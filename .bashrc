@@ -197,4 +197,5 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
+alias docker-rmmysql="docker ps --format=json | jq -r '. | select(.Names | contains(\"workspace\") | not) | select(.Image | contains(\"mysql\")) | .Names' | xargs docker rm -f"
 complete -C '/home/bpayne/.local/bin/aws_completer' aws
