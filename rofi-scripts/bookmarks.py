@@ -30,7 +30,7 @@ with open(BOOKMARKS_FILE) as f:
         if child['name'] == BOOKMARKS_FOLDER_NAME:
             for bookmark in child['children']:
                 icon_path = get_icon(bookmark['url'])
-                options.append(f"  n {bookmark['name']}\t{bookmark['url']}\0icon\x1f{icon_path}")
+                options.append(f"    {bookmark['name']}\t{bookmark['url']}\0icon\x1f{icon_path}")
 
 if len(sys.argv) > 1:
     selected = sys.argv[1]
