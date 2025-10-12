@@ -1,1 +1,5 @@
 nnoremap q <C-w>
+set clipboard^=ideaput
+set clipboard^=unnamedplus
+set ideajoin
+set idearefactormode=keep

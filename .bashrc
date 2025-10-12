@@ -143,6 +143,7 @@ export VISUAL=vim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias vitodo='vim /home/bpayne/Documents/notes/todo.txt'
+alias viide='vim /home/bpayne/Documents/notes/ide.txt'
 if [[ -e ~/.cdable_vars.sh ]]; then
     . ~/.cdable_vars.sh
 fi
@@ -162,11 +163,6 @@ if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
 fi
 
 eval "$(direnv hook bash)"
-
-# pyenv
-if [[ -e ~/.pyenv.sh ]]; then
-    . ~/.pyenv.sh
-fi
 
 # github
 if [[ -e ~/.gh.sh ]]; then
@@ -199,3 +195,8 @@ git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
 alias docker-rmmysql="docker ps --format=json | jq -r '. | select(.Names | contains(\"workspace\") | not) | select(.Image | contains(\"mysql\")) | .Names' | xargs docker rm -f"
 complete -C '/home/bpayne/.local/bin/aws_completer' aws
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+eval "$(uv generate-shell-completion bash)"

@@ -75,7 +75,7 @@ vmap > >gv
 
 nnoremap q <C-w>
 
-set clipboard^=unnamedplus,unnamedplus
+set clipboard^=unnamedplus
 
 set expandtab
 let g:vim_markdown_folding_disabled = 1
