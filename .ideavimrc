@@ -1,1 +1,2 @@
 nnoremap q <C-w>
+set clipboard ideaput

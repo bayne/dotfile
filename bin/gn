@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+git fetch --prune origin
+REMOTE_SHA=$(git branch -r | grep -E '^  origin/(develop|master)' | fzf)
+git checkout $REMOTE_SHA
+BRANCH=$(jira mine | fzf --tac | cut -c5-13)
+git checkout -b $BRANCH
