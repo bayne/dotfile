@@ -1,4 +1,4 @@
-#!/home/bpayne/Code/Github/pyenv/versions/rofi-scripts/bin/python3
+#!/usr/bin/env -S uv run --script
 
 import os
 import subprocess
