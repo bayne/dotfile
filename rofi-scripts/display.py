@@ -9,6 +9,7 @@ DEVICES = [
 ]
 
 FFPLAY_EXEC = f"/home/bpayne/Code/mine/ffmpeg/ffplay"
+TERMINAL_EXEC = f"/usr/bin/alacritty"
 
 def get_options() -> dict[str, tuple[str, str]]:
     options = {
@@ -34,6 +35,9 @@ if selection not in options:
 selected_display, window_name = options[selection]
 r = subprocess.run(
     [
+        TERMINAL_EXEC,
+        '--hold',
+        '-e',
         FFPLAY_EXEC,
         '-f', 'decklink', selected_display,
         '-window_title', window_name,
