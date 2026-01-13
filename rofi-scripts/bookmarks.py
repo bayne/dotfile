@@ -1,4 +1,10 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env -S uv run --cache-dir=/home/bpayne/.uv-cache --script
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#     "requests",
+# ]
+# ///
 import json
 import os
 import sys
@@ -14,11 +20,12 @@ CHROME_EXEC = f"/usr/bin/google-chrome"
 
 def get_icon(url):
     hostname = urlparse(url).hostname
-    path = f'{ICON_DIR}/{hostname}.ico'
+    domain = '.'.join(hostname.split('.')[-2:])
+    path = f'{ICON_DIR}/{domain}.ico'
     if os.path.exists(path):
         return path
 
-    resp = requests.get(f'https://icons.duckduckgo.com/ip3/{hostname}.ico')
+    resp = requests.get(f'https://icons.duckduckgo.com/ip3/{domain}.ico', timeout=0.2)
     with open(path, 'wb') as f:
         f.write(resp.content)
     return path
