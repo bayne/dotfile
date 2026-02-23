@@ -4,4 +4,7 @@ git fetch --prune origin
 REMOTE_SHA=$(git branch -r | grep -E '^  origin/(develop|master)' | fzf)
 git checkout $REMOTE_SHA
 BRANCH=$(jira mine | fzf --tac | cut -c5-13)
-git checkout -b $BRANCH
+git switch -c $BRANCH 2> /dev/null || git checkout $BRANCH
+if [ -f IPAY-TEMPLATE.py ] && ! [ -f $BRANCH.py ]; then
+    cp IPAY-TEMPLATE.py $BRANCH.py
+fi

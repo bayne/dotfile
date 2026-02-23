@@ -129,7 +129,6 @@ export PATH=$PATH:/home/bpayne/.bin
 export PATH=$PATH:/home/bpayne/.local/bin
 #eval "$(jira --completion-script-bash)"
 
-export DOCKER_HOST="unix:///var/run/docker.sock"
 
 export VISUAL=vim
 export EDITOR="$VISUAL"
@@ -139,7 +138,7 @@ alias viide='vim /home/bpayne/Documents/notes/ide.txt'
 if [[ -e ~/.cdable_vars.sh ]]; then
     . ~/.cdable_vars.sh
 fi
-if [[ -n "$ZED_TERM" || ( -z "$SSH_CONNECTION" && -z "$TMUX" && -z "$CLAUDE_CODE" && -v ZED_FORCE_CLI ) ]]; then
+if [[ -n "$ZED_TERM" || ( -z "$SSH_CONNECTION" && -z "$TMUX" && -z "$CLAUDE_CODE" && -v ZED_FORCE_CLI ) && "alacritty" == $TERM ]]; then
     SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
     exec tmux new-session -s "$SESSION_NAME"
 fi
@@ -195,17 +194,38 @@ export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
-alias docker-rmmysql="docker ps --format=json | jq -r '. | select(.Names | contains(\"workspace\") | not) | select(.Image | contains(\"mysql\")) | .Names' | xargs docker rm -f"
-complete -C '/usr/local/bin/aws_completer' aws
+alias podman-rmmysql="podman ps -a --format=json | jq -r '.[] | select(.Names[] | contains(\"workspace\") | not) | select(.Command[]? | contains(\"mysqld\")) | .Names[]' | xargs podman rm -f"
+alias podman-rmsftp="podman ps -a --format=json | jq -r '.[] | select(.Names[] | contains(\"workspace\") | not) | select(.Image | contains(\"sftp\")) | .Names[]' | xargs podman rm -f"
+
+complete -C '/home/bpayne/.local/bin/aws_completer' aws
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 eval "$(uv generate-shell-completion bash)"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+SF_AC_BASH_SETUP_PATH=/home/bpayne/.cache/sf/autocomplete/bash_setup && test -f $SF_AC_BASH_SETUP_PATH && source $SF_AC_BASH_SETUP_PATH; # sf autocomplete setup
 alias dcb-history='F=$(dcb -H | sort -r | hs | cut -f3 -d" ") && [[ -n $F ]] && dcb $F'
-source /home/bpayne/.config/op/plugins.sh
-export _SED_BASH_COMMAND="'s/^.*bash_command\[[0-9]\+\]: bpayne: .\{10\} 13:54:27 //g'"
-alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
+export AWS_DEFAULT_PROFILE=HULU_SSO
+alias aws-nonprod='devx cloud aws-login -r "arn:aws:iam::001797876521:role/HuluAdPlatformTeamAccess"'
+alias aws-prod='devx cloud aws-login -r "arn:aws:iam::644248783419:role/HuluAdPlatformTeamAccess"'
+alias aws-dcops='devx cloud aws-login -r "arn:aws:iam::584878871707:role/HuluAdPlatformTeamAccess"'
+alias vault-nonprod-invoicing='eval $(devx locksmith env-vars -s invoicing-v2 -n 5ccc787a795f940104e5132b -e staging)'
+
+export DOCKER_HOST=unix://${XDG_RUNTIME_DIR}/podman/podman.sock
+export TESTCONTAINERS_RYUK_DISABLED=true
+
+complete -C /usr/bin/terraform terraform
+
+export XDG_RUNTIME_DIR=/run/user/1000
+export PIPEWIRE_RUNTIME_DIR=/run/user/1000
+export PULSE_SERVER=unix:/run/user/1000/pulse/native
+export TZ="America/Los_Angeles"
+
 vhich() {
     vim "$(which "$1")"
 }
@@ -223,3 +243,10 @@ complete -F _podmanCompose pc
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+#export AWS_BEARER_TOKEN_BEDROCK=op://Employee/aws-bedrock/AWS_BEARER_TOKEN_BEDROCK
+export AWS_PROFILE=DAWS
+export CLAUDE_CODE_USE_BEDROCK=1
+alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
+alias bedrocklogin='awsmyid login -u brian.payne@disney.com -f sms -p DAWS'
+export PATH="/home/bpayne/IntelliJ/latest/bin:$PATH"

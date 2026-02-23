@@ -38,6 +38,7 @@ with open(BOOKMARKS_FILE) as f:
             for bookmark in child['children']:
                 icon_path = get_icon(bookmark['url'])
                 options.append(f"    {bookmark['name']}\t{bookmark['url']}\0icon\x1f{icon_path}")
+#                options.append(f"    {bookmark['name']}\t{bookmark['url']}")
 
 if len(sys.argv) > 1:
     selected = sys.argv[1]
