@@ -2,6 +2,7 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
+
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
@@ -67,15 +68,6 @@ else
     PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
-
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
-    ;;
-*)
-    ;;
-esac
 
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
@@ -147,7 +139,7 @@ alias viide='vim /home/bpayne/Documents/notes/ide.txt'
 if [[ -e ~/.cdable_vars.sh ]]; then
     . ~/.cdable_vars.sh
 fi
-if [[ -z "$SSH_CONNECTION" && -z "$TMUX" ]]; then
+if [[ -n "$ZED_TERM" || ( -z "$SSH_CONNECTION" && -z "$TMUX" && -z "$CLAUDE_CODE" && -v ZED_FORCE_CLI ) ]]; then
     SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
     exec tmux new-session -s "$SESSION_NAME"
 fi
@@ -155,8 +147,6 @@ if [[ -e "$HOME/.cargo/env" ]]; then
     . "$HOME/.cargo/env"
 fi
 export LESS='-R'
-
-export PROMPT_COMMAND='history -a; command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//"); logger -p user.notice -t bash_command "$USER: $command"'
 
 if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
     . ~/Code/Github/tmux-bash-completion/completions/tmux
@@ -188,15 +178,48 @@ if [[ -e ~/.kubectl.sh ]]; then
     . ~/.kubectl.sh
 fi
 
+if [[ -e ~/.flux.sh ]]; then
+    . ~/.flux.sh
+fi
+
+if [[ -e ~/.loki.sh ]]; then
+    . ~/.loki.sh
+fi
+if [[ -e ~/.bashrc.local-alias.sh ]]; then
+    . ~/.bashrc.local-alias.sh
+fi
+
+
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 
 git config --global --unset-all mine.repo
 ls -1 /home/bpayne/Code/mine | xargs -I {} git config --global --add mine.repo /home/bpayne/Code/mine/{}
 alias docker-rmmysql="docker ps --format=json | jq -r '. | select(.Names | contains(\"workspace\") | not) | select(.Image | contains(\"mysql\")) | .Names' | xargs docker rm -f"
-complete -C '/home/bpayne/.local/bin/aws_completer' aws
+complete -C '/usr/local/bin/aws_completer' aws
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 eval "$(uv generate-shell-completion bash)"
+alias dcb-history='F=$(dcb -H | sort -r | hs | cut -f3 -d" ") && [[ -n $F ]] && dcb $F'
+source /home/bpayne/.config/op/plugins.sh
+export _SED_BASH_COMMAND="'s/^.*bash_command\[[0-9]\+\]: bpayne: .\{10\} 13:54:27 //g'"
+alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
+vhich() {
+    vim "$(which "$1")"
+}
+complete -c vhich
+alias j='sudo journalctl -r'
+alias jf='sudo journalctl --follow'
+alias pc='podman-compose'
+psx() {
+    ps -eo pid,user,%cpu,%mem,exe:60,cmd --sort=-%mem | head -n "${1:-30}"
+}
+
+source /usr/share/bash-completion/completions/podman-compose
+complete -F _podmanCompose pc
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
