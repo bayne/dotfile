@@ -2,4 +2,9 @@ nnoremap q <C-w>
 set clipboard^=ideaput
 set clipboard^=unnamedplus
 set ideajoin
-set idearefactormode=keep
+set idearefactormode=insert
+set sneak
+set ideavimsupport=dialog,singleline
+
+" Sweep AI Tab completion mapping
+map <Tab> :action dev.sweep.assistant.autocomplete.edit.AcceptEditCompletionAction<CR>
