@@ -121,8 +121,8 @@ On_IYellow="\[\033[0;103m\]"
 On_IYellow_Raw="\033[0;103m"
 On_IBlue="\[\033[0;104m\]"
 On_IBlue_Raw="\033[0;104m"
-On_IPurple="\[\033[10;95m\]"
-On_IPurple_Raw="\033[10;95m"
+On_IPurple="\[\033[0;105m\]"
+On_IPurple_Raw="\033[0;105m"
 On_ICyan="\[\033[0;106m\]"
 On_ICyan_Raw="\033[0;106m"
 On_IWhite="\[\033[0;107m\]"
@@ -139,11 +139,16 @@ NewLine="\n"
 Jobs="\j"
 
 # Get host color from hostcolor command
-HostColor=$(hostname | hostcolor)
-HostColor=${HostColor^}
-HostColorVar=${!HostColor}
-HostColorVar_Raw="${HostColor}_Raw"
-HostColorVar_Raw=${!HostColorVar_Raw}
+if command -v hostcolor &>/dev/null; then
+    HostColor=$(hostname | hostcolor)
+    HostColor=${HostColor^}
+    HostColorVar=${!HostColor}
+    HostColorVar_Raw="${HostColor}_Raw"
+    HostColorVar_Raw=${!HostColorVar_Raw}
+else
+    HostColorVar="$Green"
+    HostColorVar_Raw="$Green_Raw"
+fi
 
 # Record command start time
 command_timer_start() {
@@ -158,14 +163,16 @@ command_timer_stop() {
     local excluded=false
 
 
-    while IFS= read -r pattern; do
-        if [[ $_command =~ $pattern ]]; then
-            excluded=true
-        fi
-    done < ~/.exclude-command
+    if [[ -f ~/.exclude-command ]]; then
+        while IFS= read -r pattern; do
+            if [[ $_command =~ $pattern ]]; then
+                excluded=true
+            fi
+        done < ~/.exclude-command
+    fi
 
     if (( duration >= 60 )) && [[ "$excluded" == false ]]; then
-        agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)"
+        agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &
     fi
 
     unset _cmd_start _cmd_name
@@ -175,6 +182,70 @@ cd_rw_52x_record() {
     command cd-rw-52x --record "$PWD" 2>/dev/null
 }
 
+# Register existing file paths from the last command as GTK recent files,
+# so they appear in the Chrome/GTK file chooser "Recent" section.
+__recent_register() {
+    python3 -c "
+import subprocess, sys, os
+from gi.repository import GLib
+
+xbel_path = os.path.expanduser('~/.local/share/recently-used.xbel')
+bm = GLib.BookmarkFile()
+try:
+    bm.load_from_file(xbel_path)
+except Exception:
+    pass
+
+now = GLib.DateTime.new_now_local()
+for path in sys.argv[1:]:
+    uri = GLib.filename_to_uri(path)
+    try:
+        out = subprocess.check_output(
+            ['gio', 'info', '--attributes=standard::content-type', path],
+            stderr=subprocess.DEVNULL, text=True)
+        mime = 'application/octet-stream'
+        for line in out.splitlines():
+            if 'content-type' in line:
+                mime = line.split(':', 1)[1].strip()
+                break
+    except Exception:
+        mime = 'application/octet-stream'
+    bm.set_mime_type(uri, mime)
+    bm.add_application(uri, 'bash', 'bash %u')
+    bm.set_visited_date_time(uri, now)
+
+bm.to_file(xbel_path)
+" "$@" 2>/dev/null &
+}
+
+__recent_from_command() {
+    local -a words
+    read -ra words <<< "$1"
+
+    local -a found_files=()
+    local word resolved
+
+    for word in "${words[@]}"; do
+        [[ "$word" == -* ]] && continue
+        [[ "$word" == *'|'* || "$word" == *'>'* || "$word" == *'<'* || "$word" == *'$'* ]] && continue
+        if [[ "$word" == ~/* ]]; then
+            word="${HOME}${word:1}"
+        fi
+        if [[ "$word" == /* ]]; then
+            resolved="$word"
+        else
+            resolved="${PWD}/${word}"
+        fi
+        if [[ -f "$resolved" ]]; then
+            found_files+=("$resolved")
+        fi
+    done
+
+    if (( ${#found_files[@]} )); then
+        __recent_register "${found_files[@]}"
+    fi
+}
+
 set_prompt() {
     local git_status
 
@@ -182,7 +253,8 @@ set_prompt() {
     # Logging (moved from PROMPT_COMMAND in .bashrc)
     history -a
     command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//")
-    logger -p user.notice -t bash_command "$USER: $command"
+    command -v logger &>/dev/null && logger -p user.notice -t bash_command "$USER: $command"
+    __recent_from_command "$command"
 
     # Base prompt: time, user@host
     PS1="${CL_PROMPT_MARKER}${IBlack}${Time12h}${BICyan} \u${BIWhite}@${HostColorVar}\h${Color_Off}"
@@ -201,12 +273,14 @@ set_prompt() {
         
 
         git_status=$(git status 2>/dev/null)
-        if echo "$git_status" | grep -q "nothing to commit"; then
-            # Clean repository
-            PS1+="${Green}\$(__git_ps1 ' (%s)')${Color_Off} "
-        else
-            # Dirty repository
-            PS1+="${Red}\$(__git_ps1 ' (%s)')${Color_Off} "
+        if type -t __git_ps1 &>/dev/null; then
+            if echo "$git_status" | grep -q "nothing to commit"; then
+                # Clean repository
+                PS1+="${Green}\$(__git_ps1 ' (%s)')${Color_Off} "
+            else
+                # Dirty repository
+                PS1+="${Red}\$(__git_ps1 ' (%s)')${Color_Off} "
+            fi
         fi
 
 
