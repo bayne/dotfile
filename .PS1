@@ -172,7 +172,7 @@ command_timer_stop() {
     fi
 
     if (( duration >= 60 )) && [[ "$excluded" == false ]]; then
-        agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &
+        (agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &)
     fi
 
     unset _cmd_start _cmd_name
@@ -185,7 +185,7 @@ cd_rw_52x_record() {
 # Register existing file paths from the last command as GTK recent files,
 # so they appear in the Chrome/GTK file chooser "Recent" section.
 __recent_register() {
-    python3 -c "
+    (python3 -c "
 import subprocess, sys, os
 from gi.repository import GLib
 
@@ -215,7 +215,8 @@ for path in sys.argv[1:]:
     bm.set_visited_date_time(uri, now)
 
 bm.to_file(xbel_path)
-" "$@" 2>/dev/null &
+" "$@" 2>/dev/null &)
+
 }
 
 __recent_from_command() {
@@ -289,7 +290,7 @@ set_prompt() {
         # Not in a git repo
         PS1+=" ${Yellow}${PathShort}${Color_Off}\n\$ "
     fi
-    cd_rw_52x_record
+    (cd_rw_52x_record &)
     command_timer_stop
     [ -n "$TMUX" ] && tmux select-pane -T "" \; set-window-option automatic-rename on 2>/dev/null
 }
