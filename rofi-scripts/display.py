@@ -41,8 +41,10 @@ r = subprocess.run(
         FFPLAY_EXEC,
 #        "-raw_format", "uyvy422",
 #        "-raw_format", "yuv422p10",
+
         "-raw_format", "argb",
         "-format_code", "Hp60",
+
         #"-format_code", "wqh6",
         "-fflags", "nobuffer",
         "-flags", "low_delay",

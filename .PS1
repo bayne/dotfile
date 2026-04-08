@@ -128,6 +128,8 @@ On_ICyan_Raw="\033[0;106m"
 On_IWhite="\[\033[0;107m\]"
 On_IWhite_Raw="\033[0;107m"
 
+CL_PROMPT_MARKER="⌘cl⌘ "
+
 # Various variables for PS1 prompt
 Time12h="\T"
 Time12a="\@"
@@ -143,19 +145,61 @@ HostColorVar=${!HostColor}
 HostColorVar_Raw="${HostColor}_Raw"
 HostColorVar_Raw=${!HostColorVar_Raw}
 
+# Record command start time
+command_timer_start() {
+    _cmd_start=${_cmd_start:-$SECONDS}
+    _cmd_name="$BASH_COMMAND"
+}
+
+# Notify if command took longer than 10 seconds
+command_timer_stop() {
+    local duration=$(( SECONDS - ${_cmd_start:-$SECONDS} ))
+    local _command=$(echo "${command}" | cut -f3- -d' ')
+    local excluded=false
+
+
+    while IFS= read -r pattern; do
+        if [[ $_command =~ $pattern ]]; then
+            excluded=true
+        fi
+    done < ~/.exclude-command
+
+    if (( duration >= 60 )) && [[ "$excluded" == false ]]; then
+        agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)"
+    fi
+
+    unset _cmd_start _cmd_name
+}
+
+cd_rw_52x_record() {
+    command cd-rw-52x --record "$PWD" 2>/dev/null
+}
+
 set_prompt() {
     local git_status
 
+    
     # Logging (moved from PROMPT_COMMAND in .bashrc)
     history -a
     command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//")
     logger -p user.notice -t bash_command "$USER: $command"
 
     # Base prompt: time, user@host
-    PS1="${IBlack}${Time12h}${BICyan} \u${BIWhite}@${HostColorVar}\h${Color_Off}"
+    PS1="${CL_PROMPT_MARKER}${IBlack}${Time12h}${BICyan} \u${BIWhite}@${HostColorVar}\h${Color_Off}"
 
     # Git integration
     if git branch &>/dev/null; then
+        # inside the `if git branch &>/dev/null` block:
+        local branch_count=$(git branch | grep -v '^\*' | wc -l)
+        local worktree_count=$(( $(git worktree list | wc -l) - 1))
+
+        if (( worktree_count > 0 )); then
+            PS1+=" ${IBlack}b:${branch_count} w:${On_Yellow}${BBlack}${worktree_count}${Color_Off}"
+        else
+            PS1+="${IBlack} b:${branch_count} w:${worktree_count}${Color_Off}"
+        fi
+        
+
         git_status=$(git status 2>/dev/null)
         if echo "$git_status" | grep -q "nothing to commit"; then
             # Clean repository
@@ -164,11 +208,17 @@ set_prompt() {
             # Dirty repository
             PS1+="${Red}\$(__git_ps1 ' (%s)')${Color_Off} "
         fi
+
+
         PS1+="${BYellow}${PathShort}${Color_Off}\n\$ "
     else
         # Not in a git repo
         PS1+=" ${Yellow}${PathShort}${Color_Off}\n\$ "
     fi
+    cd_rw_52x_record
+    command_timer_stop
+    [ -n "$TMUX" ] && tmux select-pane -T "" \; set-window-option automatic-rename on 2>/dev/null
 }
 
-PROMPT_COMMAND=set_prompt
+trap 'command_timer_start' DEBUG
+PROMPT_COMMAND="set_prompt"

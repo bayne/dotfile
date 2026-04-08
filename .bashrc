@@ -138,13 +138,17 @@ alias viide='vim /home/bpayne/Documents/notes/ide.txt'
 if [[ -e ~/.cdable_vars.sh ]]; then
     . ~/.cdable_vars.sh
 fi
-if [[ -n "$ZED_TERM" || ( -z "$SSH_CONNECTION" && -z "$TMUX" && -z "$CLAUDE_CODE" && -v ZED_FORCE_CLI ) && "alacritty" == $TERM ]]; then
-    SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
-    exec tmux new-session -s "$SESSION_NAME"
-fi
+#if [[ -n "$ZED_TERM" || ( -z "$SSH_CONNECTION" && -z "$TMUX" && -z "$CLAUDE_CODE" && -v ZED_FORCE_CLI ) || ( "xterm-kitty" == $TERM ) ]]; then
+    #SESSION_NAME=$(grep -E '^[a-z]{5}$' /usr/share/dict/esperanto | shuf -n 2 | tr '\n' '-' | sed 's/.$//')
+    # exec tmux new-session # -s "$SESSION_NAME"
+#fi
 if [[ -e "$HOME/.cargo/env" ]]; then
     . "$HOME/.cargo/env"
 fi
+#if [ -n "$SSH_CONNECTION" ] && [ -n "$TMUX_SESSION" ] && [ -z "$TMUX" ]; then
+#    exec tmux attach-session -t "$TMUX_SESSION" 2>/dev/null || exec tmux new-session -s "$TMUX_SESSION"
+#fi
+
 export LESS='-R'
 
 if [ -f ~/Code/Github/tmux-bash-completion/completions/tmux ]; then
@@ -187,6 +191,18 @@ fi
 if [[ -e ~/.bashrc.local-alias.sh ]]; then
     . ~/.bashrc.local-alias.sh
 fi
+if [[ -e ~/.forge.sh ]]; then
+    . ~/.forge.sh
+fi
+if [[ -e ~/.dragon.sh ]]; then
+    . ~/.dragon.sh
+fi
+
+
+#if [[ -e ~/.cl.sh ]]; then
+#    . ~/.cl.sh
+#fi
+
 
 
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
@@ -226,6 +242,29 @@ export PIPEWIRE_RUNTIME_DIR=/run/user/1000
 export PULSE_SERVER=unix:/run/user/1000/pulse/native
 export TZ="America/Los_Angeles"
 
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+#export AWS_BEARER_TOKEN_BEDROCK=op://Employee/aws-bedrock/AWS_BEARER_TOKEN_BEDROCK
+export AWS_PROFILE=DAWS
+#alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
+alias bedrocklogin='awsmyid login -u brian.payne@disney.com -f sms -p DAWS'
+export PATH="/home/bpayne/IntelliJ/latest/bin:$PATH"
+
+cdrw_jump() {
+    local target
+    target=$(command cdrw --select)
+    if [ -n "$target" ]; then
+        cd "$target" || return 1
+    fi
+}
+alias bh='bh history recall'
+alias c='cd-rw-52x'
+alias cb="flatpak run app.getclipboard.Clipboard"
+alias au='sudo apt update && sudo apt upgrade'
+alias clcl='click-clop'
+alias pmr='print-my-ride'
 vhich() {
     vim "$(which "$1")"
 }
@@ -233,20 +272,12 @@ complete -c vhich
 alias j='sudo journalctl -r'
 alias jf='sudo journalctl --follow'
 alias pc='podman-compose'
+source /usr/share/bash-completion/completions/podman-compose
+complete -F _podmanCompose pc
 psx() {
     ps -eo pid,user,%cpu,%mem,exe:60,cmd --sort=-%mem | head -n "${1:-30}"
 }
 
-source /usr/share/bash-completion/completions/podman-compose
-complete -F _podmanCompose pc
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-#export AWS_BEARER_TOKEN_BEDROCK=op://Employee/aws-bedrock/AWS_BEARER_TOKEN_BEDROCK
-export AWS_PROFILE=DAWS
-export CLAUDE_CODE_USE_BEDROCK=1
-alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
-alias bedrocklogin='awsmyid login -u brian.payne@disney.com -f sms -p DAWS'
-export PATH="/home/bpayne/IntelliJ/latest/bin:$PATH"
+alias ll='eza -l --git --git-repos'
+export TIME_STYLE=iso
