@@ -171,9 +171,9 @@ command_timer_stop() {
         done < ~/.exclude-command
     fi
 
-    if (( duration >= 60 )) && [[ "$excluded" == false ]]; then
-        (agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &)
-    fi
+#    if (( duration >= 60 )) && [[ "$excluded" == false ]]; then
+#        (agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &)
+#    fi
 
     unset _cmd_start _cmd_name
 }
@@ -247,14 +247,20 @@ __recent_from_command() {
     fi
 }
 
+# ── bh: log commands to systemd journal for `bh history recall` ──
+__bh_log_command() {
+    local cmd
+    cmd=$(fc -ln -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//') 
+    command -v logger &>/dev/null && logger -p user.notice -t bash_command "$USER: $(date '+%Y-%m-%d %H:%M:%S') $cmd"
+}
+
 set_prompt() {
     local git_status
 
-    
     # Logging (moved from PROMPT_COMMAND in .bashrc)
     history -a
     command=$(history 1 | sed "s/^[ ]*[0-9]*[ ]*//")
-    command -v logger &>/dev/null && logger -p user.notice -t bash_command "$USER: $command"
+    __bh_log_command
     __recent_from_command "$command"
 
     # Base prompt: time, user@host

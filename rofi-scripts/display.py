@@ -1,5 +1,6 @@
 #!/usr/bin/env -S uv run --script
 import subprocess
+import sys
 
 DEVICES = [
     "DeckLink Quad HDMI Recorder (1)",
@@ -19,17 +20,20 @@ def get_options() -> dict[str, tuple[str, str]]:
         options[f"{i}:\t{device}"] = (device, device)
     return options
 
-options = get_options()
-options_string = '\n'.join(options.keys())
-r = subprocess.run(
-    [
-        'rofi', '-dmenu',
-    ],
-    input=options_string,
-    capture_output=True,
-    text=True,
-)
-selection = r.stdout.strip()
+if len(sys.argv) < 2:
+    options = get_options()
+    options_string = '\n'.join(options.keys())
+    r = subprocess.run(
+        [
+            'rofi', '-dmenu',
+        ],
+        input=options_string,
+        capture_output=True,
+        text=True,
+    )
+    selection = r.stdout.strip()
+else:
+    selection = sys.argv[1]
 if selection not in options:
     exit(1)
 selected_display, window_name = options[selection]
@@ -40,10 +44,15 @@ r = subprocess.run(
         '-e',
         FFPLAY_EXEC,
 #        "-raw_format", "uyvy422",
+#        "-raw_format", "v210",
 #        "-raw_format", "yuv422p10",
 
-        "-raw_format", "argb",
-        "-format_code", "Hp60",
+#        "-raw_format", "argb",
+#        "-raw_format", "0rgb",
+#        "-raw_format", "rgb0",
+#        "-format_code", "Hp60",
+#        "-format_code", "Hp30",
+#        "-format_code", "4k30",
 
         #"-format_code", "wqh6",
         "-fflags", "nobuffer",

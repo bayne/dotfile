@@ -6,19 +6,20 @@
 # If not running interactively, don't do anything
 case $- in
     *i*) ;;
-      *) return;;
+    *) return;;
 esac
-
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-HISTCONTROL=ignoreboth
 
 # append to the history file, don't overwrite it
 shopt -s histappend
 
 # for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
+HISTSIZE=-1
+HISTFILESIZE=-1
+HISTTIMEFORMAT="%F %T "
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
 
 # check the window size after each command and, if necessary,
 # update the values of LINES and COLUMNS.
@@ -120,17 +121,24 @@ if [ -f ~/.intellij.sh ]; then
     . ~/.intellij.sh
 fi
 
+if [ -f ~/.gcx.sh ]; then
+    . ~/.gcx.sh
+fi
+
+
 # vim mode
 set -o vi
 
 export ANDROID_SDK_ROOT=~/Code/Android
+export ANDROID_HOME=~/Code/Android
 PATH=$PATH:$(go env GOPATH)/bin
+export PATH=$PATH:/home/bpayne/.cargo/bin
 export PATH=$PATH:/home/bpayne/.bin
 export PATH=$PATH:/home/bpayne/.local/bin
 #eval "$(jira --completion-script-bash)"
 
 
-export VISUAL=vim
+export VISUAL=nvim
 export EDITOR="$VISUAL"
 alias viqtile='vim /home/bpayne/.config/qtile/config.py'
 alias vitodo='vim /home/bpayne/Documents/notes/todo.txt'
@@ -248,7 +256,6 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 
 #export AWS_BEARER_TOKEN_BEDROCK=op://Employee/aws-bedrock/AWS_BEARER_TOKEN_BEDROCK
 export AWS_PROFILE=DAWS
-#alias bh='_BH_CMD=$(journalctl -r -t bash_command | fzf | sed "s/^.*bash_command\[[0-9]\+\]: bpayne: [0-9: \-]\{0,20\}//g") && echo $_BH_CMD && tmux send-keys "$_BH_CMD"'
 alias bedrocklogin='awsmyid login -u brian.payne@disney.com -f sms -p DAWS'
 export PATH="/home/bpayne/IntelliJ/latest/bin:$PATH"
 
@@ -281,3 +288,21 @@ psx() {
 
 alias ll='eza -l --git --git-repos'
 export TIME_STYLE=iso
+
+alias sound-test='pw-record --channels=1 --rate=48000 /tmp/test.wav; pw-play /tmp/test.wav'
+alias pw-test='sound-test'
+export PATH=$PATH:$HOME/.maestro/bin
+alias vim='nvim'
+alias f='fzf $(cat ~/.exclude-fzf | sed "s/^/--exclude=/")'
+
+source '/home/bpayne/.bash_completions/hf.sh'
+
+export HF_HOME=/media/bpayne/Mizar/models/huggingface
+
+# pnpm
+export PNPM_HOME="/home/bpayne/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
