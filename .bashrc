@@ -293,7 +293,7 @@ alias sound-test='pw-record --channels=1 --rate=48000 /tmp/test.wav; pw-play /tm
 alias pw-test='sound-test'
 export PATH=$PATH:$HOME/.maestro/bin
 alias vim='nvim'
-alias f='fzf $(cat ~/.exclude-fzf | sed "s/^/--exclude=/")'
+alias f='vimm-find'
 
 source '/home/bpayne/.bash_completions/hf.sh'
 
