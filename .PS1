@@ -128,6 +128,11 @@ On_ICyan_Raw="\033[0;106m"
 On_IWhite="\[\033[0;107m\]"
 On_IWhite_Raw="\033[0;107m"
 
+# Full-width status-bar background (the first prompt line). Change the
+# 256-color index (236 = dark gray) to recolor the whole bar.
+Bar_BG="\[\033[48;5;236m\]"
+Bar_BG_Raw="\033[48;5;236m"
+
 CL_PROMPT_MARKER="⌘cl⌘ "
 
 # Various variables for PS1 prompt
@@ -263,8 +268,12 @@ set_prompt() {
     __bh_log_command
     __recent_from_command "$command"
 
-    # Base prompt: time, user@host
-    PS1="${CL_PROMPT_MARKER}${IBlack}${Time12h}${BICyan} \u${BIWhite}@${HostColorVar}\h${Color_Off}"
+    # Full-width bar: re-assert ${bg} after each foreground color because
+    # many color vars start with "0;" (a full SGR reset that also clears
+    # the background). Mid-bar resets use "${off}${bg}" to drop foreground
+    # attributes while keeping the bar background.
+    local bg="$Bar_BG" off="\[\033[0m\]"
+    local bar="${bg}${CL_PROMPT_MARKER}${IBlack}${bg}${Time12h}${BICyan}${bg} \u${BIWhite}${bg}@${HostColorVar}${bg}\h"
 
     # Git integration
     if git branch &>/dev/null; then
@@ -273,9 +282,9 @@ set_prompt() {
         local worktree_count=$(( $(git worktree list | wc -l) - 1))
 
         if (( worktree_count > 0 )); then
-            PS1+=" ${IBlack}b:${branch_count} w:${On_Yellow}${BBlack}${worktree_count}${Color_Off}"
+            bar+=" ${IBlack}${bg}b:${branch_count} w:${On_Yellow}${BBlack}${worktree_count}${off}${bg}"
         else
-            PS1+="${IBlack} b:${branch_count} w:${worktree_count}${Color_Off}"
+            bar+="${IBlack}${bg} b:${branch_count} w:${worktree_count}"
         fi
         
 
@@ -283,23 +292,53 @@ set_prompt() {
         if type -t __git_ps1 &>/dev/null; then
             if echo "$git_status" | grep -q "nothing to commit"; then
                 # Clean repository
-                PS1+="${Green}\$(__git_ps1 ' (%s)')${Color_Off} "
+                bar+="${Green}${bg}\$(__git_ps1 ' (%s)')"
             else
                 # Dirty repository
-                PS1+="${Red}\$(__git_ps1 ' (%s)')${Color_Off} "
+                bar+="${Red}${bg}\$(__git_ps1 ' (%s)')"
             fi
         fi
 
 
-        PS1+="${BYellow}${PathShort}${Color_Off}\n\$ "
+        bar+=" ${BYellow}${bg}${PathShort}"
     else
         # Not in a git repo
-        PS1+=" ${Yellow}${PathShort}${Color_Off}\n\$ "
+        bar+=" ${Yellow}${bg}${PathShort}"
     fi
+
+    # Pad the bar to the full terminal width so the background spans the
+    # whole line. Width is measured from the expanded prompt (${bar@P},
+    # which runs the \$(__git_ps1) substitution and expands \u \h \w \T).
+    # @P drops the \[..\] markers but leaves the raw "ESC[..m" colour
+    # codes inline, so strip those before counting. Recomputed every
+    # prompt, so the bar re-fits on resize.
+    local expanded="${bar@P}" visible="" rest
+    rest="$expanded"
+    while [[ $rest == *$'\033'* ]]; do
+        visible+="${rest%%$'\033'*}"   # text before the escape
+        rest="${rest#*$'\033'\[}"      # drop through "ESC["
+        rest="${rest#*m}"              # drop SGR params + terminating "m"
+    done
+    visible+="$rest"
+
+    local cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
+    local pad=$(( cols - ${#visible} ))
+    (( pad < 0 )) && pad=0
+    local fill=""
+    (( pad > 0 )) && printf -v fill '%*s' "$pad" ''
+
+    # Bar ends in a single full reset; line 2 ("\$ ") stays uncolored and
+    # short so command editing never wraps even if the bar is miscounted.
+    PS1="${bar}${bg}${fill}${off}\n\$ "
+
     (cd_rw_52x_record &)
     command_timer_stop
     [ -n "$TMUX" ] && tmux select-pane -T "" \; set-window-option automatic-rename on 2>/dev/null
 }
+
+# Keep $COLUMNS current after a terminal resize so the full-width bar
+# re-fits on the next prompt instead of overflowing and wrapping.
+shopt -s checkwinsize
 
 trap 'command_timer_start' DEBUG
 PROMPT_COMMAND="set_prompt"
