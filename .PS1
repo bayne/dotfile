@@ -306,30 +306,14 @@ set_prompt() {
         bar+=" ${Yellow}${bg}${PathShort}"
     fi
 
-    # Pad the bar to the full terminal width so the background spans the
-    # whole line. Width is measured from the expanded prompt (${bar@P},
-    # which runs the \$(__git_ps1) substitution and expands \u \h \w \T).
-    # @P drops the \[..\] markers but leaves the raw "ESC[..m" colour
-    # codes inline, so strip those before counting. Recomputed every
-    # prompt, so the bar re-fits on resize.
-    local expanded="${bar@P}" visible="" rest
-    rest="$expanded"
-    while [[ $rest == *$'\033'* ]]; do
-        visible+="${rest%%$'\033'*}"   # text before the escape
-        rest="${rest#*$'\033'\[}"      # drop through "ESC["
-        rest="${rest#*m}"              # drop SGR params + terminating "m"
-    done
-    visible+="$rest"
-
-    local cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
-    local pad=$(( cols - ${#visible} ))
-    (( pad < 0 )) && pad=0
-    local fill=""
-    (( pad > 0 )) && printf -v fill '%*s' "$pad" ''
-
-    # Bar ends in a single full reset; line 2 ("\$ ") stays uncolored and
-    # short so command editing never wraps even if the bar is miscounted.
-    PS1="${bar}${bg}${fill}${off}\n\$ "
+    # Fill the rest of the line with the bar background via erase-to-EOL
+    # (ESC[K): with the background set, the terminal paints from the cursor
+    # to the real right edge itself, so there's no width math and it
+    # re-fits on resize (readline re-emits the prompt on SIGWINCH). ESC[K
+    # is zero-width (the cursor doesn't move), so it's wrapped in \[..\].
+    # tmux/alacritty/xterm back-colour-erase even where terminfo omits it.
+    # Line 2 ("\$ ") stays uncoloured and short so editing never wraps.
+    PS1="${bar}${bg}\[\033[K\]${off}\n\$ "
 
     (cd_rw_52x_record &)
     command_timer_stop
