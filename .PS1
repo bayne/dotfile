@@ -155,15 +155,47 @@ else
     HostColorVar_Raw="$Green_Raw"
 fi
 
-# Record command start time
+# Record command start time. _cmd_start is integer SECONDS (legacy duration
+# display); _cmd_start_us is microseconds from EPOCHREALTIME for the
+# millisecond-precision duration tmxb needs. The `:-` keeps the *first* real
+# command's start time across a multi-command line. This single DEBUG trap also
+# fires for the PROMPT_COMMAND hooks (`set_prompt`, direnv's `_direnv_hook`) —
+# skip them so a bare Enter never arms the timer (and so never produces a
+# spurious tmxb emit). tmxb is wired in here instead of sourcing tmxb.bash,
+# which would fight this trap and PROMPT_COMMAND for the single slot each owns.
 command_timer_start() {
+    case $BASH_COMMAND in set_prompt*|_direnv_hook*) return ;; esac
     _cmd_start=${_cmd_start:-$SECONDS}
-    _cmd_name="$BASH_COMMAND"
+    _cmd_start_us=${_cmd_start_us:-${EPOCHREALTIME/./}}
+    _cmd_name=${_cmd_name:-$BASH_COMMAND}
 }
 
-# Notify if command took longer than 10 seconds
+# Stop the timer and forward long-running commands to tmxb. $1 is the finished
+# command's exit code, captured at the top of set_prompt before anything
+# clobbers $?. tmxb applies its own duration threshold and no-ops outside tmux,
+# so we always hand it the event; we still honor the local ~/.exclude-command
+# list the old notifier used.
 command_timer_stop() {
+    local rc=${1:-0}
+
+    # First prompt of the shell: the timer was armed by .bashrc's own startup
+    # commands, and `command` is a stale line from the previous session. Swallow
+    # it once so we never emit a bogus startup event.
+    if [[ -z $_cmd_prompt_ready ]]; then
+        _cmd_prompt_ready=1
+        unset _cmd_start _cmd_name _cmd_start_us
+        return
+    fi
+
+    # Nothing ran since the last prompt (a bare Enter): _cmd_start_us is unset,
+    # so there is no command to report.
+    if [[ -z $_cmd_start_us ]]; then
+        unset _cmd_start _cmd_name _cmd_start_us
+        return
+    fi
+
     local duration=$(( SECONDS - ${_cmd_start:-$SECONDS} ))
+    local ms=$(( ( ${EPOCHREALTIME/./} - _cmd_start_us ) / 1000 ))
     local _command=$(echo "${command}" | cut -f3- -d' ')
     local excluded=false
 
@@ -180,7 +212,13 @@ command_timer_stop() {
 #        (agent-smith send "\"${_command}\" finished in ${duration}s (exit: $?)" &>/dev/null &)
 #    fi
 
-    unset _cmd_start _cmd_name
+    # Surface long-running commands in rofi / warp-back-to-pane via tmxb.
+    # Detached so a slow or missing listener never blocks the prompt.
+    if [[ "$excluded" == false ]] && command -v tmxb &>/dev/null; then
+        ( tmxb emit --exit-code "$rc" --duration-ms "$ms" -- $_command >/dev/null 2>&1 & ) 2>/dev/null
+    fi
+
+    unset _cmd_start _cmd_name _cmd_start_us
 }
 
 cd_rw_52x_record() {
@@ -260,6 +298,10 @@ __bh_log_command() {
 }
 
 set_prompt() {
+    # Capture the finished command's exit code first — history/git below clobber
+    # $?. direnv's hook runs ahead of us in PROMPT_COMMAND but preserves $?, so
+    # this is still the user command's status.
+    local rc=$?
     local git_status
 
     # Logging (moved from PROMPT_COMMAND in .bashrc)
@@ -316,7 +358,7 @@ set_prompt() {
     PS1="${bar}${bg}\[\033[K\]${off}\n\$ "
 
     (cd_rw_52x_record &)
-    command_timer_stop
+    command_timer_stop "$rc"
     [ -n "$TMUX" ] && tmux select-pane -T "" \; set-window-option automatic-rename on 2>/dev/null
 }
 
