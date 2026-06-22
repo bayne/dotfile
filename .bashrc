@@ -234,7 +234,6 @@ export SDKMAN_DIR="$HOME/.sdkman"
 
 SF_AC_BASH_SETUP_PATH=/home/bpayne/.cache/sf/autocomplete/bash_setup && test -f $SF_AC_BASH_SETUP_PATH && source $SF_AC_BASH_SETUP_PATH; # sf autocomplete setup
 alias dcb-history='F=$(dcb -H | sort -r | hs | cut -f3 -d" ") && [[ -n $F ]] && dcb $F'
-export AWS_DEFAULT_PROFILE=HULU_SSO
 alias aws-nonprod='devx cloud aws-login -r "arn:aws:iam::001797876521:role/HuluAdPlatformTeamAccess"'
 alias aws-prod='devx cloud aws-login -r "arn:aws:iam::644248783419:role/HuluAdPlatformTeamAccess"'
 alias aws-dcops='devx cloud aws-login -r "arn:aws:iam::584878871707:role/HuluAdPlatformTeamAccess"'
@@ -254,9 +253,6 @@ export TZ="America/Los_Angeles"
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
-#export AWS_BEARER_TOKEN_BEDROCK=op://Employee/aws-bedrock/AWS_BEARER_TOKEN_BEDROCK
-export AWS_PROFILE=DAWS
-alias bedrocklogin='awsmyid login -u brian.payne@disney.com -f sms -p DAWS'
 export PATH="/home/bpayne/IntelliJ/latest/bin:$PATH"
 
 cdrw_jump() {
