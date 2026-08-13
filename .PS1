@@ -188,8 +188,12 @@ command_timer_stop() {
     fi
 
     # Nothing ran since the last prompt (a bare Enter): _cmd_start_us is unset,
-    # so there is no command to report.
+    # so there is no command to report. Fire tmxb with empty argv so it records
+    # a pane clear — rofi will suppress stale notifications for this pane.
     if [[ -z $_cmd_start_us ]]; then
+        if [[ -n "$TMUX" ]] && command -v tmxb &>/dev/null; then
+            ( tmxb emit --exit-code 0 --duration-ms 0 -- >/dev/null 2>&1 & ) 2>/dev/null
+        fi
         unset _cmd_start _cmd_name _cmd_start_us
         return
     fi

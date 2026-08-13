@@ -302,3 +302,9 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/home/bpayne/google-cloud-sdk/path.bash.inc' ]; then . '/home/bpayne/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/home/bpayne/google-cloud-sdk/completion.bash.inc' ]; then . '/home/bpayne/google-cloud-sdk/completion.bash.inc'; fi
