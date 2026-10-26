@@ -205,6 +205,28 @@ fi
 if [[ -e ~/.dragon.sh ]]; then
     . ~/.dragon.sh
 fi
+if [[ -e ~/.tmxb.sh ]]; then
+    . ~/.tmxb.sh
+fi
+if [[ -e ~/.hf-tier.sh ]]; then
+    . ~/.hf-tier.sh
+fi
+if [[ -e ~/.rec.sh ]]; then
+    . ~/.rec.sh
+fi
+
+
+sops-init() {
+  [ -e .sops.yaml ] && { echo ".sops.yaml already exists"; return 1; }
+  local pub
+  pub=$(age-keygen -y "${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}") || return 1
+  cat > .sops.yaml <<EOF
+creation_rules:
+  - path_regex: (^|/)(\.env|secrets/.*\.ya?ml)\$
+    age: ${pub}
+EOF
+  echo "wrote .sops.yaml for ${pub}"
+}
 
 
 #if [[ -e ~/.cl.sh ]]; then
@@ -293,7 +315,7 @@ alias f='vimm-find'
 
 source '/home/bpayne/.bash_completions/hf.sh'
 
-export HF_HOME=/media/bpayne/Mizar/models/huggingface
+export HF_HOME=/mnt/8cb5669f-0636-4e40-b8d8-0d215a8a6aa5/models/hf-cache/huggingface
 
 # pnpm
 export PNPM_HOME="/home/bpayne/.local/share/pnpm"

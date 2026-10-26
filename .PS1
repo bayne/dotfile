@@ -136,6 +136,17 @@ Bar_BG_Raw="\033[48;5;236m"
 CL_PROMPT_MARKER="⌘cl⌘ "
 
 # Various variables for PS1 prompt
+_mmdd_glyph() {
+    local m=$(date +%-m) d=$(date +%-d)
+    local mo_hex=$(printf '%08x' $((0x32C0 + m - 1)))
+    local da_hex=$(printf '%08x' $((0x33E0 + d - 1)))
+    printf "\U${mo_hex}\U${da_hex}"
+}
+
+#PS1='$(_mmdd_glyph) \$ '
+# Time12h="\T"
+Date=$(_mmdd_glyph)
+#Date="\D{%m-%d}"
 Time12h="\T"
 Time12a="\@"
 PathShort="\w"
@@ -319,7 +330,7 @@ set_prompt() {
     # the background). Mid-bar resets use "${off}${bg}" to drop foreground
     # attributes while keeping the bar background.
     local bg="$Bar_BG" off="\[\033[0m\]"
-    local bar="${bg}${CL_PROMPT_MARKER}${IBlack}${bg}${Time12h}${BICyan}${bg} \u${BIWhite}${bg}@${HostColorVar}${bg}\h"
+    local bar="${bg}${CL_PROMPT_MARKER}${IBlack}${bg}${Date}${Time12h}${BICyan}${bg} \u${BIWhite}${bg}@${HostColorVar}${bg}\h"
 
     # Git integration
     if git branch &>/dev/null; then
